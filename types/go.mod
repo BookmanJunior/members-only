@@ -1,3 +1,3 @@
-module github.com/bookmanjr/members-only/types
+module github.com/bookmanjunior/members-only/types
 
 go 1.22.3
