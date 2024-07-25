@@ -16,10 +16,11 @@ import (
 )
 
 const Red = "\033[31m"
+const White = "\033[97m"
 
 func main() {
 
-	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
+	infoLog := log.New(os.Stdout, White+"INFO\t", log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stderr, Red+"ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 	addr := flag.String("addr", ":3000", "HTTP network address")
 
