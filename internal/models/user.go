@@ -22,12 +22,15 @@ func (u *UserModel) Get(id int) (User, error) {
 	user := User{}
 	res := u.DB.QueryRow(`select "username", "password", "avatar_url" from "users" inner join "avatars" on users.avatar = avatars.id and users.id = $1`, id)
 
-	err := res.Err()
+	if res.Err() != nil {
+		return user, res.Err()
+	}
+
+	err := res.Scan(&user.Username, &user.password, &user.Avatar)
 
 	if err != nil {
 		return user, err
 	}
 
-	res.Scan(&user.Username, &user.password, &user.Avatar)
 	return user, nil
 }
