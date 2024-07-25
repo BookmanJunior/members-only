@@ -20,6 +20,7 @@ func HandleUserGet(a *config.Application) http.HandlerFunc {
 		res, err := a.Users.Get(userId)
 
 		if err != nil {
+			notFound(&w, a, err)
 			return
 		}
 
