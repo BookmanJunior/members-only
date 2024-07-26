@@ -14,7 +14,8 @@ func Router(app *config.Application) http.Handler {
 		w.Write([]byte("Caught"))
 	})
 	router.HandleFunc("GET /users", handlers.HandleUserGet(app))
+	router.HandleFunc("POST /users", handlers.HandleUserPost(app))
 	router.HandleFunc("GET /messages", handlers.HandleMessagesGet(app))
 
-	return middleware.Logger(app, router)
+	return middleware.RecoverPanic(app, middleware.Logger(app, router))
 }
