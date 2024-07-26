@@ -11,8 +11,8 @@ import (
 	"github.com/bookmanjunior/members-only/api"
 	"github.com/bookmanjunior/members-only/config"
 	"github.com/bookmanjunior/members-only/internal/models"
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/joho/godotenv"
-	_ "github.com/lib/pq"
 )
 
 const Red = "\033[31m"
@@ -31,7 +31,7 @@ func main() {
 
 	conncstring := fmt.Sprintf("user=%v password=%v host=%v port=%v dbname=%v sslmode=disable", os.Getenv("DB_USER"),
 		os.Getenv("DB_PASSWORD"), os.Getenv("DB_HOST"), os.Getenv("DB_PORT"), os.Getenv("DB_NAME"))
-	db, err := sql.Open("postgres", conncstring)
+	db, err := sql.Open("pgx", conncstring)
 
 	if err != nil {
 		errorLog.Fatal(err.Error())
