@@ -11,4 +11,5 @@ type Application struct {
 	InfoLog  *log.Logger
 	Users    *models.UserModel
 	Messages *models.MessageModel
+	Avatar   *models.AvatarModel
 }
