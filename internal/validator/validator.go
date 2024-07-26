@@ -41,6 +41,6 @@ func (v *Validator) MaxChars(value string, n int) bool {
 	return utf8.RuneCountInString(value) < n
 }
 
-func (v *Validator) AreFieldsEquel(value1, value2 string) bool {
+func (v *Validator) AreFieldsEqual(value1, value2 string) bool {
 	return value1 == value2
 }
