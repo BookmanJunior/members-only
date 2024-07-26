@@ -13,3 +13,17 @@ func Logger(a *config.Application, next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
+
+func RecoverPanic(app *config.Application, next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			if err := recover(); err != nil {
+				w.Header().Set("Connection", "close	")
+				app.ErrorLog.Printf("%s\n", err)
+				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			}
+		}()
+
+		next.ServeHTTP(w, r)
+	})
+}
