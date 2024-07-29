@@ -42,6 +42,7 @@ func main() {
 		InfoLog:  infoLog,
 		Users:    &models.UserModel{DB: db},
 		Messages: &models.MessageModel{DB: db},
+		Avatar:   &models.AvatarModel{DB: db},
 	}
 
 	server := &http.Server{
