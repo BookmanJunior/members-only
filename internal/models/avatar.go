@@ -25,7 +25,6 @@ func (a *Avatar) Insert(db *sql.DB) func() error {
 		_, err := db.Exec(`insert into avatars("name", "url") values($1, $2) returning id`, a.Name, a.Url)
 
 		if err != nil {
-			fmt.Println(err)
 			return errors.New("Couldn't complete operation")
 		}
 
@@ -46,4 +45,14 @@ func (a *AvatarModel) Get(id int) (Avatar, error) {
 	}
 
 	return avatar, nil
+}
+
+func (a *AvatarModel) Exists(id int) bool {
+	_, err := a.Get(id)
+
+	if err != nil {
+		return false
+	}
+
+	return true
 }
