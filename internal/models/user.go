@@ -2,6 +2,7 @@ package models
 
 import (
 	"database/sql"
+	"strings"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -25,7 +26,7 @@ func (u *UserModel) Insert(username, password string, avatar int) (User, error) 
 		return user, err
 	}
 
-	res := u.DB.QueryRow(`insert into users (username, password, avatar) values ($1, $2, $3) returning id`, username, hashedPassword, avatar)
+	res := u.DB.QueryRow(`insert into users (username, password, avatar) values ($1, $2, $3) returning id`, strings.ToLower(username), hashedPassword, avatar)
 
 	err = res.Scan(&userId)
 
@@ -55,16 +56,26 @@ func (u *UserModel) Get(id int) (User, error) {
 	return user, nil
 }
 
-func (u *UserModel) Exists(username string) bool {
-	var usernameExists string
-	res := u.DB.QueryRow(`select "username" from "users" where "username" = $1`, username)
+func (u *UserModel) GetByUsername(username string) (User, error) {
+	var user User
 
-	err := res.Scan(&usernameExists)
+	res := u.DB.QueryRow(`select "username" from "users" where "username" = $1`, strings.ToLower(username))
+
+	err := res.Scan(&user.Username)
+
+	if err != nil {
+		return user, err
+	}
+
+	return user, nil
+}
+
+func (u *UserModel) Exists(username string) bool {
+	_, err := u.GetByUsername(username)
 
 	if err != nil {
 		return false
 	}
 
 	return true
-
 }
