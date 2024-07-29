@@ -75,9 +75,9 @@ func HandleUserPost(app *config.Application) http.HandlerFunc {
 		if form.Valid() {
 			usernameExists := app.Users.Exists(form.Username)
 			if usernameExists {
-				errorMsg := fmt.Sprintf("%v already exists. Please pick a different username\n", usernameExists)
+				errorMsg := fmt.Sprintf("%v already exists. Please pick a different username", form.Username)
 				form.AddFieldError("username", errorMsg)
-				encoded, _ := json.Marshal(form.Validator.FieldErros)
+				encoded, _ := json.Marshal(form.Validator.FieldErrors)
 				w.Write(encoded)
 				return
 			}
@@ -85,14 +85,14 @@ func HandleUserPost(app *config.Application) http.HandlerFunc {
 
 			if !avatarExists {
 				form.AddFieldError("avatar", "Please pick a valid avatar")
-				encoded, _ := json.Marshal(form.Validator.FieldErros)
+				encoded, _ := json.Marshal(form.Validator.FieldErrors)
 				w.Write(encoded)
 				return
 			}
 		}
 
 		if !form.Valid() {
-			encoded, _ := json.Marshal(form.Validator.FieldErros)
+			encoded, _ := json.Marshal(form.Validator.FieldErrors)
 			w.Write(encoded)
 			return
 		}
