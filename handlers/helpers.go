@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"runtime/debug"
@@ -8,17 +9,31 @@ import (
 	"github.com/bookmanjunior/members-only/config"
 )
 
-func serverError(a *config.Application, err error, w *http.ResponseWriter) {
+type customError map[string]string
+
+func WriteJSON(w http.ResponseWriter, code int, v any) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	w.WriteHeader(code)
+	return json.NewEncoder(w).Encode(v)
+}
+
+func serverError(w http.ResponseWriter, a *config.Application, err error) {
 	trace := fmt.Sprintf("%s\n%s", err.Error(), debug.Stack())
 	a.ErrorLog.Printf(trace)
-	http.Error(*w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+	http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 }
 
-func clientError(w *http.ResponseWriter, a *config.Application, err error, status int) {
+func clientError(w http.ResponseWriter, a *config.Application, err error, status int, message customError) {
 	a.ErrorLog.Println(err)
-	http.Error(*w, http.StatusText(status), http.StatusBadRequest)
+	WriteJSON(w, status, message)
 }
 
-func notFound(w *http.ResponseWriter, a *config.Application, err error) {
-	clientError(w, a, err, 404)
+func notFound(w http.ResponseWriter, a *config.Application, err error) {
+	clientError(w, a, err, 404, map[string]string{"error": "Not found"})
+
+}
+
+func badCredentials(w http.ResponseWriter, a *config.Application, err error) {
+	clientError(w, a, err, 401, map[string]string{"error": "Wrong username or password"})
 }
