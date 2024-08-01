@@ -10,6 +10,7 @@ import (
 
 func Router(app *config.Application) http.Handler {
 	router := http.NewServeMux()
+	router.HandleFunc("POST /login", handlers.HandleLogin(app))
 	router.HandleFunc("GET /users", handlers.HandleUserGet(app))
 	router.HandleFunc("POST /users", handlers.HandleUserPost(app))
 	router.HandleFunc("GET /messages", handlers.HandleMessagesGet(app))
