@@ -12,14 +12,14 @@ func HandleMessagesGet(a *config.Application) http.HandlerFunc {
 		messages, err := a.Messages.GetAll()
 
 		if err != nil {
-			serverError(a, err, &w)
+			serverError(w, a, err)
 			return
 		}
 
 		messagesEncoded, err := json.Marshal(&messages)
 
 		if err != nil {
-			serverError(a, err, &w)
+			serverError(w, a, err)
 			return
 		}
 		w.Write([]byte(messagesEncoded))

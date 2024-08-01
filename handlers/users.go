@@ -23,25 +23,18 @@ func HandleUserGet(a *config.Application) http.HandlerFunc {
 		userId, err := strconv.Atoi(r.URL.Query().Get("id"))
 
 		if err != nil || userId < 0 {
-			notFound(&w, a, err)
+			notFound(w, a, err)
 			return
 		}
 
-		res, err := a.Users.Get(userId)
+		res, err := a.Users.GetById(userId)
 
 		if err != nil {
-			notFound(&w, a, err)
+			notFound(w, a, err)
 			return
 		}
 
-		responseData, err := json.Marshal(res)
-
-		if err != nil {
-			notFound(&w, a, err)
-			return
-		}
-
-		w.Write([]byte(responseData))
+		WriteJSON(w, 200, res)
 
 	}
 }
@@ -51,7 +44,7 @@ func HandleUserPost(app *config.Application) http.HandlerFunc {
 		err := r.ParseForm()
 
 		if err != nil {
-			clientError(&w, app, err, 400)
+			clientError(w, app, err, 400, map[string]string{"error": http.StatusText(400)})
 			return
 		}
 
@@ -77,37 +70,34 @@ func HandleUserPost(app *config.Application) http.HandlerFunc {
 			if usernameExists {
 				errorMsg := fmt.Sprintf("%v already exists. Please pick a different username", form.Username)
 				form.AddFieldError("username", errorMsg)
-				encoded, _ := json.Marshal(form.Validator.FieldErrors)
-				w.Write(encoded)
+				clientError(w, app, err, 400, form.Validator.FieldErrors)
 				return
 			}
 			avatarExists := app.Avatar.Exists(form.Avatar)
 
 			if !avatarExists {
 				form.AddFieldError("avatar", "Please pick a valid avatar")
-				encoded, _ := json.Marshal(form.Validator.FieldErrors)
-				w.Write(encoded)
+				clientError(w, app, err, 400, form.Validator.FieldErrors)
 				return
 			}
 		}
 
 		if !form.Valid() {
-			encoded, _ := json.Marshal(form.Validator.FieldErrors)
-			w.Write(encoded)
+			clientError(w, app, err, 400, form.Validator.FieldErrors)
 			return
 		}
 
 		res, err := app.Users.Insert(form.Username, form.Password, form.Avatar)
 
 		if err != nil {
-			clientError(&w, app, err, 400)
+			serverError(w, app, err)
 			return
 		}
 
 		userM, err := json.Marshal(res)
 
 		if err != nil {
-			serverError(app, err, &w)
+			serverError(w, app, err)
 			return
 		}
 
