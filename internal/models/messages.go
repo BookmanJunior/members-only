@@ -37,3 +37,25 @@ func (m *MessageModel) GetAll() ([]Message, error) {
 	}
 	return messages, nil
 }
+
+func (m *MessageModel) Insert(message string, user_id int) error {
+	queryString := `insert into messages (message_body, user_id) values ($1, $2)`
+	_, err := m.DB.Exec(queryString, message, user_id)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *MessageModel) Delete(message_id int) error {
+	queryString := `delete from messages where id = $1`
+	_, err := m.DB.Exec(queryString, message_id)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
