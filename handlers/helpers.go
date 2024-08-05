@@ -30,10 +30,14 @@ func clientError(w http.ResponseWriter, a *config.Application, err error, status
 }
 
 func notFound(w http.ResponseWriter, a *config.Application, err error) {
-	clientError(w, a, err, 404, map[string]string{"error": "Not found"})
+	clientError(w, a, err, http.StatusNotFound, map[string]string{"error": "Not found"})
 
 }
 
 func badCredentials(w http.ResponseWriter, a *config.Application, err error) {
-	clientError(w, a, err, 401, map[string]string{"error": "Wrong username or password"})
+	clientError(w, a, err, http.StatusUnauthorized, map[string]string{"error": "Wrong username or password"})
+}
+
+func Unauthorized(w http.ResponseWriter, a *config.Application, err error) {
+	WriteJSON(w, http.StatusUnauthorized, map[string]string{"error": http.StatusText(http.StatusUnauthorized)})
 }
