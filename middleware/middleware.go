@@ -1,9 +1,15 @@
 package middleware
 
 import (
+	"context"
+	"errors"
+	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/bookmanjunior/members-only/config"
+	"github.com/bookmanjunior/members-only/handlers"
+	"github.com/bookmanjunior/members-only/internal/auth"
 )
 
 func Logger(a *config.Application, next http.Handler) http.Handler {
@@ -26,4 +32,36 @@ func RecoverPanic(app *config.Application, next http.Handler) http.Handler {
 
 		next.ServeHTTP(w, r)
 	})
+}
+
+func IsAuthorized(a *config.Application, next http.Handler) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		authHeader := r.Header.Get("Authorization")
+
+		if authHeader == "" {
+			handlers.Unauthorized(w, a, errors.New("Missing Authorization token"))
+			return
+		}
+
+		bearerToken := strings.Split(authHeader, " ")[1]
+
+		claims, err := auth.VerifyToken(bearerToken)
+
+		if err != nil {
+			handlers.Unauthorized(w, a, err)
+			return
+		}
+
+		currentUser := auth.UserClaim{
+			Id:    int(claims["id"].(float64)),
+			Admin: claims["admin"].(bool),
+		}
+
+		ctx := r.Context()
+		ctx = context.WithValue(ctx, "current_user", currentUser)
+		r = r.WithContext(ctx)
+
+		fmt.Println("Current claim: ", claims)
+		next.ServeHTTP(w, r)
+	}
 }
