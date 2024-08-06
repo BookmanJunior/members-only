@@ -1,19 +1,28 @@
 package auth
 
 import (
-	"fmt"
 	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt"
 )
 
+type UserClaim struct {
+	Id    int
+	Admin bool
+}
+
+const (
+	bearerTokenExp = 10 * time.Minute
+)
+
 var secretKey = []byte(os.Getenv("SECRET_TOKEN"))
 
-func CreateToken(id int) (string, error) {
+func CreateToken(currentUser UserClaim) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"id":  id,
-		"exp": time.Now().Add(time.Hour * 24).Unix(),
+		"id":    currentUser.Id,
+		"admin": currentUser.Admin,
+		"exp":   time.Now().Add(bearerTokenExp).Unix(),
 	})
 
 	tokenString, err := token.SignedString(secretKey)
@@ -25,17 +34,17 @@ func CreateToken(id int) (string, error) {
 	return tokenString, nil
 }
 
-func VerifyToken(tokenString string) error {
+func VerifyToken(tokenString string) (jwt.MapClaims, error) {
+	var claims jwt.MapClaims
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		return secretKey, nil
 	})
 
 	if err != nil {
-		return err
+		return claims, err
 	}
 
-	if !token.Valid {
-		return fmt.Errorf("invalid token")
-	}
-	return nil
+	claims = token.Claims.(jwt.MapClaims)
+
+	return claims, nil
 }
