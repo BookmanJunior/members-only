@@ -18,7 +18,8 @@ type handleLoginForm struct {
 func HandleLogin(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		loginForm := &handleLoginForm{}
-		err := json.NewDecoder(r.Body).Decode(&loginForm)
+		userClaim := auth.UserClaim{}
+		err := json.NewDecoder(r.Body).Decode(loginForm)
 
 		if err != nil {
 			badCredentials(w, app, err)
@@ -42,13 +43,16 @@ func HandleLogin(app *config.Application) http.HandlerFunc {
 			return
 		}
 
-		token, err := auth.CreateToken(user.Id)
+		userClaim.Id = user.Id
+		userClaim.Admin = user.Admin
+
+		bearerToken, err := auth.CreateToken(userClaim)
 
 		if err != nil {
 			serverError(w, app, err)
 			return
 		}
 
-		w.Write([]byte(token))
+		WriteJSON(w, http.StatusOK, map[string]string{"Bearer": "Bearer " + bearerToken})
 	}
 }
