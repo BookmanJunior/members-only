@@ -24,13 +24,7 @@ func HandleMessagesGet(a *config.Application) http.HandlerFunc {
 			return
 		}
 
-		messagesEncoded, err := json.Marshal(&messages)
-
-		if err != nil {
-			serverError(w, a, err)
-			return
-		}
-		w.Write([]byte(messagesEncoded))
+		WriteJSON(w, http.StatusOK, messages)
 	}
 }
 
