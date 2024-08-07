@@ -17,5 +17,5 @@ func Router(app *config.Application) http.Handler {
 	router.HandleFunc("POST /messages", middleware.IsAuthorized(app, handlers.HandleMessagePost(app)))
 	router.HandleFunc("DELETE /messages/{id}", middleware.IsAuthorized(app, handlers.HandleMessageDelete(app)))
 
-	return middleware.RecoverPanic(app, middleware.Logger(app, router))
+	return middleware.RecoverPanic(app, middleware.EnableCors(app, middleware.Logger(app, router)))
 }
