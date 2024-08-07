@@ -39,7 +39,7 @@ func IsAuthorized(a *config.Application, next http.Handler) http.HandlerFunc {
 		authHeader := r.Header.Get("Authorization")
 
 		if authHeader == "" {
-			handlers.Unauthorized(w, a, errors.New("Missing Authorization token"))
+			handlers.Unauthorized(w, a, errors.New("missing Authorization token"))
 			return
 		}
 
@@ -62,6 +62,14 @@ func IsAuthorized(a *config.Application, next http.Handler) http.HandlerFunc {
 		r = r.WithContext(ctx)
 
 		fmt.Println("Current claim: ", claims)
+		next.ServeHTTP(w, r)
+	}
+}
+
+func EnableCors(app *config.Application, next http.Handler) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "https://top-members-only-frontend.vercel.app")
+
 		next.ServeHTTP(w, r)
 	}
 }
