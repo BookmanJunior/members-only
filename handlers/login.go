@@ -53,6 +53,6 @@ func HandleLogin(app *config.Application) http.HandlerFunc {
 			return
 		}
 
-		WriteJSON(w, http.StatusOK, map[string]string{"Bearer": "Bearer " + bearerToken})
+		WriteJSON(w, http.StatusOK, map[string]any{"bearer": "Bearer " + bearerToken, "user": user})
 	}
 }
