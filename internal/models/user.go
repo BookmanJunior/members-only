@@ -7,11 +7,12 @@ import (
 )
 
 type User struct {
-	Id       int    `json:"id"`
-	Username string `json:"username"`
-	Password string `json:"-"`
-	Avatar   string `json:"avatar"`
-	Admin    bool   `json:"admin"`
+	Id          int    `json:"id"`
+	Username    string `json:"username"`
+	Password    string `json:"-"`
+	Avatar      string `json:"avatar"`
+	AvatarColor string `json:"avatar_color"`
+	Admin       bool   `json:"admin"`
 }
 
 type UserModel struct {
@@ -39,7 +40,8 @@ func (u *UserModel) Insert(username, password string, avatar int) (int, error) {
 
 func (u *UserModel) GetById(id int) (User, error) {
 	user := User{}
-	res := u.DB.QueryRow(`select users.id, "username", "password", "avatar_url", "admin" from "users" inner join "avatars" on users.avatar = avatars.id and users.id = $1`, id)
+	res := u.DB.QueryRow(`select users.id, "username", "password", "avatar_url", "admin" from "users"
+	 inner join "avatars" on users.avatar = avatars.id and users.id = $1`, id)
 
 	err := res.Scan(&user.Id, &user.Username, &user.Password, &user.Avatar, &user.Admin)
 
@@ -53,7 +55,8 @@ func (u *UserModel) GetById(id int) (User, error) {
 func (u *UserModel) GetByUsername(username string) (User, error) {
 	var user User
 
-	res := u.DB.QueryRow(`select "id", "username", "password", "avatar", "admin" from "users" where "username" = $1`, username)
+	res := u.DB.QueryRow(`select users.id, "username", "password", "avatar_url", "admin" from "users"
+	 inner join "avatars" on users.avatar = avatars.id and username = $1`, username)
 
 	err := res.Scan(&user.Id, &user.Username, &user.Password, &user.Avatar, &user.Admin)
 
