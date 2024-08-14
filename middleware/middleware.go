@@ -6,17 +6,35 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/bookmanjunior/members-only/config"
 	"github.com/bookmanjunior/members-only/handlers"
 	"github.com/bookmanjunior/members-only/internal/auth"
 )
 
+type LoggerWriter struct {
+	http.ResponseWriter
+	codeStatus int
+}
+
+func (w *LoggerWriter) WriteHeader(codeStatus int) {
+	w.ResponseWriter.WriteHeader(codeStatus)
+	w.codeStatus = codeStatus
+}
+
 func Logger(a *config.Application, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		a.InfoLog.Printf("%s %s %s %s", r.RemoteAddr, r.Proto, r.Method, r.URL.RequestURI())
+		start := time.Now()
 
-		next.ServeHTTP(w, r)
+		loggerWriter := LoggerWriter{
+			ResponseWriter: w,
+		}
+
+		next.ServeHTTP(&loggerWriter, r)
+
+		a.InfoLog.Printf("%s %s %s %d %s %s", r.RemoteAddr, r.Proto, r.Method, loggerWriter.codeStatus, r.URL.RequestURI(), time.Since(start))
+
 	})
 }
 
