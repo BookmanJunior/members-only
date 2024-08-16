@@ -11,7 +11,7 @@ import (
 )
 
 type messagePostRequest struct {
-	Message string `json:"message_body"`
+	Message string `json:"message"`
 	validator.Validator
 }
 
@@ -49,11 +49,10 @@ func HandleMessagePost(app *config.Application) http.HandlerFunc {
 		err = app.Messages.Insert(message.Message, int(currentUser.Id))
 
 		if err != nil {
-			http.Error(w, err.Error(), 400)
+			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
-
-		WriteJSON(w, 200, map[string]string{"success": "Posted message"})
+		WriteJSON(w, http.StatusOK, map[string]string{"success": "Posted message"})
 	}
 }
 
@@ -68,17 +67,17 @@ func HandleMessageDelete(app *config.Application) http.HandlerFunc {
 		}
 
 		if !currentUser.Admin {
-			WriteJSON(w, 401, map[string]string{"error": http.StatusText(401)})
+			WriteJSON(w, http.StatusUnauthorized, map[string]string{"error": http.StatusText(http.StatusUnauthorized)})
 			return
 		}
 
 		err = app.Messages.Delete(message_id)
 
 		if err != nil {
-			clientError(w, app, err, 400, map[string]string{"error": http.StatusText(400)})
+			clientError(w, app, err, http.StatusBadRequest, map[string]string{"error": http.StatusText(http.StatusBadRequest)})
 			return
 		}
 
-		WriteJSON(w, 200, map[string]string{"success": "Deleted message"})
+		WriteJSON(w, http.StatusOK, map[string]string{"success": "Deleted message"})
 	}
 }

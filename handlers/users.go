@@ -34,7 +34,7 @@ func HandleUserGet(a *config.Application) http.HandlerFunc {
 			return
 		}
 
-		WriteJSON(w, 200, res)
+		WriteJSON(w, http.StatusOK, res)
 
 	}
 }
@@ -44,7 +44,7 @@ func HandleUserPost(app *config.Application) http.HandlerFunc {
 		err := r.ParseForm()
 
 		if err != nil {
-			clientError(w, app, err, 400, map[string]string{"error": http.StatusText(400)})
+			clientError(w, app, err, http.StatusBadRequest, map[string]string{"error": http.StatusText(http.StatusBadRequest)})
 			return
 		}
 
@@ -70,20 +70,20 @@ func HandleUserPost(app *config.Application) http.HandlerFunc {
 			if usernameExists {
 				errorMsg := fmt.Sprintf("%v already exists. Please pick a different username", form.Username)
 				form.AddFieldError("username", errorMsg)
-				clientError(w, app, err, 400, form.Validator.FieldErrors)
+				clientError(w, app, err, http.StatusBadRequest, form.Validator.FieldErrors)
 				return
 			}
 			avatarExists := app.Avatar.Exists(form.Avatar)
 
 			if !avatarExists {
 				form.AddFieldError("avatar", "Please pick a valid avatar")
-				clientError(w, app, err, 400, form.Validator.FieldErrors)
+				clientError(w, app, err, http.StatusBadRequest, form.Validator.FieldErrors)
 				return
 			}
 		}
 
 		if !form.Valid() {
-			clientError(w, app, err, 400, form.Validator.FieldErrors)
+			clientError(w, app, err, http.StatusBadRequest, form.Validator.FieldErrors)
 			return
 		}
 
