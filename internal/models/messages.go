@@ -29,7 +29,7 @@ func (m *MessageModel) GetAll() ([]Message, error) {
 	for res.Next() {
 		message := &Message{}
 		err := res.Scan(&message.Id, &message.User.Id, &message.User.Username,
-			&message.User.AvatarColor, &message.User.Avatar, &message.Message, &message.Time)
+			&message.User.Avatar.Color, &message.User.Avatar.Url, &message.Message, &message.Time)
 
 		if err != nil {
 			return messages, err
