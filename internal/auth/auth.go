@@ -21,7 +21,7 @@ const (
 var secretKey []byte
 
 func init() {
-	if err := godotenv.Load(".env"); err != nil {
+	if err := godotenv.Load(); err != nil {
 		log.Fatal("env file not found")
 	}
 	secretKey = []byte(os.Getenv("TOKEN_SECRET"))
