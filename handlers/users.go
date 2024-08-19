@@ -48,14 +48,9 @@ func HandleUserPost(app *config.Application) http.HandlerFunc {
 			return
 		}
 
-		avatar, err := strconv.Atoi(r.Form.Get("avatar"))
+		var form userPostForm
 
-		form := userPostForm{
-			Username:        r.Form.Get("username"),
-			Password:        r.Form.Get("password"),
-			ConfirmPassword: r.Form.Get("confirmPassword"),
-			Avatar:          avatar,
-		}
+		json.NewDecoder(r.Body).Decode(&form)
 
 		form.CheckField(form.NotBlank(form.Username), "username", "Username can't be blank")
 		form.CheckField(form.MinChars(form.Username, 2), "username", "Username must be at least 2 characters long")
