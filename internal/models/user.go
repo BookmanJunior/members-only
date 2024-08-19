@@ -7,12 +7,11 @@ import (
 )
 
 type User struct {
-	Id          int    `json:"id"`
-	Username    string `json:"username"`
-	Password    string `json:"-"`
-	Avatar      string `json:"avatar"`
-	AvatarColor string `json:"avatar_color"`
-	Admin       bool   `json:"admin"`
+	Id       int    `json:"id"`
+	Username string `json:"username"`
+	Password string `json:"-"`
+	Avatar
+	Admin bool `json:"admin"`
 }
 
 type UserModel struct {
@@ -20,14 +19,17 @@ type UserModel struct {
 }
 
 func (u *UserModel) Insert(username, password string, avatar int) (int, error) {
+	queryString := `insert into users (username, password, avatar) values ($1, $2, $3) returning id`
+
 	var userId int
+
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 10)
 
 	if err != nil {
 		return userId, err
 	}
 
-	res := u.DB.QueryRow(`insert into users (username, password, avatar) values ($1, $2, $3) returning id`, username, hashedPassword, avatar)
+	res := u.DB.QueryRow(queryString, username, hashedPassword, avatar)
 
 	err = res.Scan(&userId)
 
@@ -39,11 +41,14 @@ func (u *UserModel) Insert(username, password string, avatar int) (int, error) {
 }
 
 func (u *UserModel) GetById(id int) (User, error) {
-	user := User{}
-	res := u.DB.QueryRow(`select users.id, "username", "password", "avatar_url", "admin" from "users"
-	 inner join "avatars" on users.avatar = avatars.id and users.id = $1`, id)
+	queryString := `select users.id, "username", "password", "avatar_color", "avatar_url", "admin" from "users"
+	 inner join "avatars" on users.avatar = avatars.id and users.id = $1`
 
-	err := res.Scan(&user.Id, &user.Username, &user.Password, &user.Avatar, &user.Admin)
+	user := User{}
+
+	res := u.DB.QueryRow(queryString, id)
+
+	err := res.Scan(&user.Id, &user.Username, &user.Password, &user.Avatar.Color, &user.Avatar.Url, &user.Admin)
 
 	if err != nil {
 		return user, err
@@ -53,12 +58,14 @@ func (u *UserModel) GetById(id int) (User, error) {
 }
 
 func (u *UserModel) GetByUsername(username string) (User, error) {
+	queryString := `select users.id, "username", "password", "avatar_color", "avatar_url", "admin" from "users"
+	 inner join "avatars" on users.avatar = avatars.id and username = $1`
+
 	var user User
 
-	res := u.DB.QueryRow(`select users.id, "username", "password", "avatar_url", "admin" from "users"
-	 inner join "avatars" on users.avatar = avatars.id and username = $1`, username)
+	res := u.DB.QueryRow(queryString, username)
 
-	err := res.Scan(&user.Id, &user.Username, &user.Password, &user.Avatar, &user.Admin)
+	err := res.Scan(&user.Id, &user.Username, &user.Password, &user.Avatar.Color, &user.Avatar.Url, &user.Admin)
 
 	if err != nil {
 		return user, err
@@ -70,9 +77,5 @@ func (u *UserModel) GetByUsername(username string) (User, error) {
 func (u *UserModel) Exists(username string) bool {
 	_, err := u.GetByUsername(username)
 
-	if err != nil {
-		return false
-	}
-
-	return true
+	return err == nil
 }
