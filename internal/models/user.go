@@ -59,7 +59,7 @@ func (u *UserModel) GetById(id int) (User, error) {
 
 func (u *UserModel) GetByUsername(username string) (User, error) {
 	queryString := `select users.id, "username", "password", "avatar_color", "avatar_url", "admin" from "users"
-	 inner join "avatars" on users.avatar = avatars.id and username = $1`
+	 inner join "avatars" on users.avatar = avatars.id and lower(username) = $1`
 
 	var user User
 
