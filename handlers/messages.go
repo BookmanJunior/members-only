@@ -7,6 +7,7 @@ import (
 
 	"github.com/bookmanjunior/members-only/config"
 	"github.com/bookmanjunior/members-only/internal/auth"
+	"github.com/bookmanjunior/members-only/internal/filter"
 	"github.com/bookmanjunior/members-only/internal/validator"
 )
 
@@ -17,7 +18,22 @@ type messagePostRequest struct {
 
 func HandleMessagesGet(a *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		messages, err := a.Messages.GetAll()
+		page, err := strconv.Atoi(r.URL.Query().Get("page"))
+
+		if err != nil || page < 1 || page > 1000 {
+			clientError(w, a, err, http.StatusBadRequest, map[string]string{"error": "Wrong page number"})
+			return
+		}
+
+		filters := filter.Filter{
+			Page:      page,
+			Page_Size: 10,
+			Keyword:   r.URL.Query().Get("keyword"),
+			Username:  r.URL.Query().Get("username"),
+			Order:     r.URL.Query().Get("order"),
+		}
+
+		messages, err := a.Messages.Get(filters)
 
 		if err != nil {
 			serverError(w, a, err)
