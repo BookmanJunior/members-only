@@ -3,6 +3,8 @@ package models
 import (
 	"database/sql"
 	"time"
+
+	"github.com/bookmanjunior/members-only/internal/filter"
 )
 
 type MessageModel struct {
@@ -19,7 +21,8 @@ type Message struct {
 func (m *MessageModel) GetAll() ([]Message, error) {
 	var messages []Message
 	var queryString = `select messages.id , users.id, "username", "avatar_color", "avatar_url", "message_body", date from "messages"
-	inner join "users" on messages.user_id = users.id inner join "avatars" on users.avatar = avatars.id`
+	inner join "users" on messages.user_id = users.id
+	inner join "avatars" on users.avatar = avatars.id`
 	res, err := m.DB.Query(queryString)
 
 	if err != nil {
@@ -36,6 +39,30 @@ func (m *MessageModel) GetAll() ([]Message, error) {
 		}
 		messages = append(messages, *message)
 	}
+	return messages, nil
+}
+
+func (m *MessageModel) Get(filters filter.Filter) ([]Message, error) {
+	var messages []Message
+	var queryString = `
+	select messages.id , users.id, "admin", "username", "avatar_color", "avatar_url", "message_body", date from "messages"
+	inner join "users" on messages.user_id = users.id
+	inner join "avatars" on users.avatar = avatars.id
+	where "message_body" ilike $1 and "username" ilike $2
+	limit $3 offset $4`
+	res, err := m.DB.Query(queryString, "%"+filters.Keyword+"%", "%"+filters.Username+"%", filters.Page_Size, filters.CurrentPage())
+
+	if err != nil {
+		return nil, err
+	}
+
+	for res.Next() {
+		var message Message
+		res.Scan(&message.Id, &message.User.Id, &message.User.Admin, &message.User.Username,
+			&message.User.Avatar.Color, &message.User.Avatar.Url, &message.Message, &message.Time)
+		messages = append(messages, message)
+	}
+
 	return messages, nil
 }
 
