@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"os"
 	"strconv"
@@ -56,8 +55,8 @@ func HandleGetMessagesAsFile(a *config.Application) http.HandlerFunc {
 			return
 		}
 
-		fileName := fmt.Sprintf("filename=%v", file.Name())
-		w.Header().Set("Content-Disposition", fileName)
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Content-Disposition", "attachment; filename=messages.json")
 		http.ServeFile(w, r, file.Name())
 
 	}
