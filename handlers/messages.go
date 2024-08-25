@@ -19,6 +19,7 @@ type messagePostRequest struct {
 func HandleMessagesGet(a *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		page, err := strconv.Atoi(r.URL.Query().Get("page"))
+		currentUser := r.Context().Value("current_user").(auth.UserClaim)
 
 		if err != nil || page < 1 || page > 1000 {
 			clientError(w, a, err, http.StatusBadRequest, map[string]string{"error": "Wrong page number"})
@@ -33,7 +34,7 @@ func HandleMessagesGet(a *config.Application) http.HandlerFunc {
 			Order:     r.URL.Query().Get("order"),
 		}
 
-		messages, err := a.Messages.Get(filters)
+		messages, err := a.Messages.Get(filters, currentUser.Id)
 
 		if err != nil {
 			serverError(w, a, err)

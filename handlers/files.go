@@ -7,12 +7,14 @@ import (
 	"strconv"
 
 	"github.com/bookmanjunior/members-only/config"
+	"github.com/bookmanjunior/members-only/internal/auth"
 	"github.com/bookmanjunior/members-only/internal/filter"
 )
 
 func HandleGetMessagesAsFile(a *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		error := map[string]string{"error": "Error creating file"}
+		currentUser := r.Context().Value("current_user").(auth.UserClaim)
 
 		page, err := strconv.Atoi(r.URL.Query().Get("page"))
 
@@ -29,7 +31,7 @@ func HandleGetMessagesAsFile(a *config.Application) http.HandlerFunc {
 			Order:     r.URL.Query().Get("order"),
 		}
 
-		messages, err := a.Messages.Get(filters)
+		messages, err := a.Messages.Get(filters, currentUser.Id)
 
 		file, err := os.CreateTemp(".", "messages*.json")
 
