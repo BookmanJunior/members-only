@@ -17,7 +17,7 @@ func Router(app *config.Application) http.Handler {
 	router.HandleFunc("POST /messages", middleware.IsAuthorized(app, handlers.HandleMessagePost(app)))
 	router.HandleFunc("DELETE /messages/{id}", middleware.IsAuthorized(app, handlers.HandleMessageDelete(app)))
 	router.HandleFunc("GET /avatars", handlers.HandleGetAvatars(app))
-	router.HandleFunc("GET /files/messages", middleware.IsAuthorized(app, handlers.HandleGetMessagesAsFile(app)))
+	router.HandleFunc("GET /files/messages", middleware.IsAuthorized(app, handlers.HandleGetMessagesAsPdf(app)))
 
 	return middleware.RecoverPanic(app, middleware.EnableCors(app, middleware.Logger(app, router)))
 }
