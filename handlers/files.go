@@ -33,7 +33,7 @@ func HandleGetMessagesAsPdf(a *config.Application) http.HandlerFunc {
 
 		messages, err := a.Messages.Get(filters, currentUser.Id)
 
-		fileName := "messages" + strconv.Itoa(rand.Intn(100)) + ".pdf"
+		fileName := "messages" + strconv.Itoa(rand.Intn(10000)) + ".pdf"
 		pdf.Generate(messages, fileName)
 
 		defer os.RemoveAll(fileName)
