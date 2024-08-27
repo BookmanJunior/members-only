@@ -34,14 +34,19 @@ func HandleMessagesGet(a *config.Application) http.HandlerFunc {
 			Order:     r.URL.Query().Get("order"),
 		}
 
-		messages, err := a.Messages.Get(filters, currentUser.Id)
+		messages, metadata, err := a.Messages.Get(filters, currentUser.Id)
+
+		if len(messages) <= 0 {
+			WriteJSON(w, http.StatusNotFound, map[string]string{"error": "No records"})
+			return
+		}
 
 		if err != nil {
 			serverError(w, a, err)
 			return
 		}
 
-		WriteJSON(w, http.StatusOK, messages)
+		WriteJSON(w, http.StatusOK, map[string]any{"metadata": metadata, "messages": messages})
 	}
 }
 
