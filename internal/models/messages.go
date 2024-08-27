@@ -70,10 +70,12 @@ func (m *MessageModel) GetAll(userId int) ([]Message, error) {
 	return messages, nil
 }
 
-func (m *MessageModel) Get(filters filter.Filter, userId int) ([]Message, error) {
+func (m *MessageModel) Get(filters filter.Filter, userId int) ([]Message, filter.MetaData, error) {
 	var messages []Message
+	var totalRecrods int
 	var queryString = `
 	select
+	count(*) OVER(),
 	m.id,
 	m.user_id,
 	m.message_body,
@@ -89,20 +91,22 @@ func (m *MessageModel) Get(filters filter.Filter, userId int) ([]Message, error)
 	FROM "messages" m
 	LEFT JOIN blocked_users b
 	ON m.user_id = b.blocked_user_id
-	AND b.user_id = 17
+	AND b.user_id = $5
 	INNER JOIN users on m.user_id = users.id
 	INNER JOIN avatars on users.avatar = avatars.id
 	WHERE m.message_body ILIKE $1 and "username" ILIKE $2
 	limit $3 offset $4;`
-	res, err := m.DB.Query(queryString, "%"+filters.Keyword+"%", "%"+filters.Username+"%", filters.Page_Size, filters.CurrentPage())
+	res, err := m.DB.Query(queryString,
+		"%"+filters.Keyword+"%", "%"+filters.Username+"%", filters.Page_Size, filters.CurrentPage(), userId)
 
 	if err != nil {
-		return nil, err
+		return nil, filter.MetaData{}, err
 	}
 
 	for res.Next() {
 		var message Message
 		res.Scan(
+			&totalRecrods,
 			&message.Id,
 			&message.User.Id,
 			&message.Message,
@@ -116,7 +120,9 @@ func (m *MessageModel) Get(filters filter.Filter, userId int) ([]Message, error)
 		messages = append(messages, message)
 	}
 
-	return messages, nil
+	metadata := filter.CalculateMetaData(totalRecrods, filters.Page, filters.Page_Size)
+
+	return messages, metadata, nil
 }
 
 func (m *MessageModel) Insert(message string, user_id int) error {
