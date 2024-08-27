@@ -31,7 +31,7 @@ func HandleGetMessagesAsPdf(a *config.Application) http.HandlerFunc {
 			Order:     r.URL.Query().Get("order"),
 		}
 
-		messages, err := a.Messages.Get(filters, currentUser.Id)
+		messages, _, err := a.Messages.Get(filters, currentUser.Id)
 
 		fileName := "messages" + strconv.Itoa(rand.Intn(10000)) + ".pdf"
 		pdf.Generate(messages, fileName)
@@ -64,7 +64,7 @@ func HandleGetMessagesAsFile(a *config.Application) http.HandlerFunc {
 			Order:     r.URL.Query().Get("order"),
 		}
 
-		messages, err := a.Messages.Get(filters, currentUser.Id)
+		messages, _, err := a.Messages.Get(filters, currentUser.Id)
 
 		file, err := os.CreateTemp(".", "messages*.json")
 
