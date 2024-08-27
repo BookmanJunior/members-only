@@ -72,7 +72,7 @@ func messages(m []models.Message) []core.Row {
 			text.NewCol(2, content.User.Username, props.Text{Size: 8, Align: align.Left}),
 			text.NewCol(2, strconv.Itoa(content.User.Id), props.Text{Size: 8, Align: align.Left}),
 			text.NewCol(4, content.Message, props.Text{Size: 8, Align: align.Left}),
-			text.NewCol(4, content.Time.String(), props.Text{Size: 8, Align: align.Left}),
+			text.NewCol(4, content.Time.Format("2006-01-02 15:04:05"), props.Text{Size: 8, Align: align.Left}),
 		)
 		contentsRow = append(contentsRow, r)
 	}
