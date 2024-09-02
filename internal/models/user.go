@@ -7,9 +7,10 @@ import (
 )
 
 type User struct {
-	Id       int    `json:"id"`
-	Username string `json:"username"`
-	Password string `json:"-"`
+	Id            int    `json:"id"`
+	Username      string `json:"username"`
+	Password      string `json:"-"`
+	FileSizeLimit int    `json:"file_limit"`
 	Avatar
 	Admin bool `json:"admin"`
 }
@@ -41,14 +42,30 @@ func (u *UserModel) Insert(username, password string, avatar int) (int, error) {
 }
 
 func (u *UserModel) GetById(id int) (User, error) {
-	queryString := `select users.id, "username", "password", "avatar_color", "avatar_url", "admin" from "users"
-	 inner join "avatars" on users.avatar = avatars.id and users.id = $1`
+	queryString := `
+	select
+	users.id,
+	"username",
+	"password",
+	"avatar_color",
+	"avatar_url",
+	"limit_size",
+	"admin" from "users"
+	inner join "avatars" on users.avatar = avatars.id and users.id = $1
+	inner join file_limit on users.file_limit_id = file_limit.limit_id`
 
 	user := User{}
 
 	res := u.DB.QueryRow(queryString, id)
 
-	err := res.Scan(&user.Id, &user.Username, &user.Password, &user.Avatar.Color, &user.Avatar.Url, &user.Admin)
+	err := res.Scan(
+		&user.Id,
+		&user.Username,
+		&user.Password,
+		&user.Avatar.Color,
+		&user.Avatar.Url,
+		&user.Admin,
+		&user.FileSizeLimit)
 
 	if err != nil {
 		return user, err
@@ -58,14 +75,30 @@ func (u *UserModel) GetById(id int) (User, error) {
 }
 
 func (u *UserModel) GetByUsername(username string) (User, error) {
-	queryString := `select users.id, "username", "password", "avatar_color", "avatar_url", "admin" from "users"
-	 inner join "avatars" on users.avatar = avatars.id and lower(username) = $1`
+	queryString := `
+	select
+	users.id,
+	"username",
+	"password",
+	"avatar_color",
+	"avatar_url",
+	"admin",
+	"limit_size" from "users"
+	inner join "avatars" on users.avatar = avatars.id and lower(username) = $1
+	inner join file_limit on users.file_limit_id = file_limit.limit_id`
 
 	var user User
 
 	res := u.DB.QueryRow(queryString, username)
 
-	err := res.Scan(&user.Id, &user.Username, &user.Password, &user.Avatar.Color, &user.Avatar.Url, &user.Admin)
+	err := res.Scan(
+		&user.Id,
+		&user.Username,
+		&user.Password,
+		&user.Avatar.Color,
+		&user.Avatar.Url,
+		&user.Admin,
+		&user.FileSizeLimit)
 
 	if err != nil {
 		return user, err
