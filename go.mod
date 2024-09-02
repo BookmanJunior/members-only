@@ -3,6 +3,7 @@ module github.com/bookmanjunior/members-only
 go 1.22.3
 
 require (
+	github.com/cloudinary/cloudinary-go/v2 v2.9.0
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/jackc/pgx/v5 v5.6.0
 	github.com/johnfercher/maroto/v2 v2.1.1
@@ -12,8 +13,10 @@ require (
 
 require (
 	github.com/boombuler/barcode v1.0.1 // indirect
+	github.com/creasty/defaults v1.7.0 // indirect
 	github.com/f-amaral/go-async v0.3.0 // indirect
 	github.com/google/uuid v1.5.0 // indirect
+	github.com/gorilla/schema v1.4.1 // indirect
 	github.com/hhrutter/lzw v1.0.0 // indirect
 	github.com/hhrutter/tiff v1.0.1 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
