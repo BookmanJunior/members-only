@@ -10,8 +10,9 @@ import (
 )
 
 type UserClaim struct {
-	Id    int
-	Admin bool
+	Id            int
+	Admin         bool
+	FileSizeLimit int
 }
 
 const (
@@ -29,9 +30,10 @@ func init() {
 
 func CreateToken(currentUser UserClaim) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"id":    currentUser.Id,
-		"admin": currentUser.Admin,
-		"exp":   time.Now().Add(bearerTokenExp).Unix(),
+		"id":            currentUser.Id,
+		"admin":         currentUser.Admin,
+		"fileSizeLimit": currentUser.FileSizeLimit,
+		"exp":           time.Now().Add(bearerTokenExp).Unix(),
 	})
 
 	tokenString, err := token.SignedString(secretKey)
