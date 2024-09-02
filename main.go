@@ -10,6 +10,7 @@ import (
 
 	"github.com/bookmanjunior/members-only/api"
 	"github.com/bookmanjunior/members-only/config"
+	"github.com/bookmanjunior/members-only/internal/cloud"
 	"github.com/bookmanjunior/members-only/internal/models"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/joho/godotenv"
@@ -37,12 +38,22 @@ func main() {
 		errorLog.Fatal(err.Error())
 	}
 
+	cloudinaryConnectString := fmt.Sprintf("cloudinary://%v:%v@%v", os.Getenv("Cloudinary_KEY"),
+		os.Getenv("Cloudinary_Secret"), os.Getenv("Cloudinary_Name"))
+	var Cloudinary cloud.Cloudinary
+	err = Cloudinary.Open(cloudinaryConnectString)
+
+	if err != nil {
+		errorLog.Fatal(err)
+	}
+
 	app := &config.Application{
 		ErrorLog: errorLog,
 		InfoLog:  infoLog,
 		Users:    &models.UserModel{DB: db},
 		Messages: &models.MessageModel{DB: db},
 		Avatar:   &models.AvatarModel{DB: db},
+		Cloud:    &Cloudinary,
 	}
 
 	server := &http.Server{
