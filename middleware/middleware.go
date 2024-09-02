@@ -71,8 +71,9 @@ func IsAuthorized(a *config.Application, next http.Handler) http.HandlerFunc {
 		}
 
 		currentUser := auth.UserClaim{
-			Id:    int(claims["id"].(float64)),
-			Admin: claims["admin"].(bool),
+			Id:            int(claims["id"].(float64)),
+			Admin:         claims["admin"].(bool),
+			FileSizeLimit: int(claims["fileSizeLimit"].(float64)),
 		}
 
 		ctx := r.Context()
