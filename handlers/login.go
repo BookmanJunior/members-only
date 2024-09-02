@@ -45,6 +45,7 @@ func HandleLogin(app *config.Application) http.HandlerFunc {
 
 		userClaim.Id = user.Id
 		userClaim.Admin = user.Admin
+		userClaim.FileSizeLimit = user.FileSizeLimit
 
 		bearerToken, err := auth.CreateToken(userClaim)
 
