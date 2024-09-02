@@ -3,6 +3,7 @@ package config
 import (
 	"log"
 
+	"github.com/bookmanjunior/members-only/internal/cloud"
 	"github.com/bookmanjunior/members-only/internal/models"
 )
 
@@ -12,4 +13,5 @@ type Application struct {
 	Users    *models.UserModel
 	Messages *models.MessageModel
 	Avatar   *models.AvatarModel
+	Cloud    cloud.Cloud
 }
