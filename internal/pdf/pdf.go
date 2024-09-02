@@ -66,7 +66,6 @@ func messages(m []models.Message) []core.Row {
 	var contentsRow []core.Row
 
 	for _, content := range m {
-		fmt.Println(content.Time)
 		r := row.New(4).Add(
 			col.New(1),
 			text.NewCol(2, content.User.Username, props.Text{Size: 8, Align: align.Left}),
