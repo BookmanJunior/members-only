@@ -125,15 +125,55 @@ func (m *MessageModel) Get(filters filter.Filter, userId int) ([]Message, filter
 	return messages, metadata, nil
 }
 
-func (m *MessageModel) Insert(message string, user_id int) error {
-	queryString := `insert into messages (message_body, user_id) values ($1, $2)`
-	_, err := m.DB.Exec(queryString, message, user_id)
+func (m *MessageModel) GetById(messageId int) (Message, error) {
+	var queryString = `
+	select
+	m.id,
+	m.message_body,
+	m.date,
+	m.user_id,
+	"username",
+	"avatar_url",
+	"avatar_color"
+	FROM "messages" m
+	INNER JOIN users on m.user_id = users.id and m.id = $1
+	INNER JOIN avatars on avatar = avatars.id and m.id = $1`
+	var message Message
+	res, err := m.DB.Query(queryString, messageId)
 
 	if err != nil {
-		return err
+		return message, err
 	}
 
-	return nil
+	for res.Next() {
+		res.Scan(
+			&message.Id,
+			&message.Message,
+			&message.Time,
+			&message.User.Id,
+			&message.User.Username,
+			&message.User.Avatar.Url,
+			&message.User.Avatar.Color,
+		)
+	}
+
+	return message, nil
+}
+
+func (m *MessageModel) Insert(message string, user_id int) (int, error) {
+	queryString := `insert into messages (message_body, user_id) values ($1, $2) returning id`
+	var messageId int
+	res, err := m.DB.Query(queryString, message, user_id)
+
+	if err != nil {
+		return messageId, err
+	}
+
+	for res.Next() {
+		res.Scan(&messageId)
+	}
+
+	return messageId, nil
 }
 
 func (m *MessageModel) Delete(message_id int) error {
