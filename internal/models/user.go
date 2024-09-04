@@ -10,9 +10,9 @@ type User struct {
 	Id            int    `json:"id"`
 	Username      string `json:"username"`
 	Password      string `json:"-"`
-	FileSizeLimit int    `json:"file_limit"`
+	FileSizeLimit int    `json:"file_limit,omitempty"`
 	Avatar
-	Admin bool `json:"admin"`
+	Admin bool `json:"admin,omitempty"`
 }
 
 type UserModel struct {
