@@ -3,11 +3,14 @@ package utils
 import (
 	"io"
 	"mime/multipart"
+	"net/http"
 	"os"
 	"path/filepath"
 
 	"github.com/bookmanjunior/members-only/config"
 )
+
+var allowedFilesTypes = [3]string{"image/png", "image/jpg", "image/jpeg"}
 
 func CopyFile(app *config.Application, fileHeader *multipart.FileHeader, file multipart.File) error {
 	copyDst, err := os.Create(filepath.Join("./attachments", filepath.Base(fileHeader.Filename)))
@@ -28,4 +31,21 @@ func CopyFile(app *config.Application, fileHeader *multipart.FileHeader, file mu
 
 	app.InfoLog.Printf("Successfully copied file: %v\n", fileHeader.Filename)
 	return nil
+}
+
+func CheckFileType(file multipart.File) bool {
+	peek := make([]byte, 512)
+	file.Read(peek)
+	defer file.Seek(0, io.SeekStart) // reset read to line 0 after initial read
+	fileType := http.DetectContentType(peek)
+	return isAllowedFileType(fileType)
+}
+
+func isAllowedFileType(fileType string) bool {
+	for _, f := range allowedFilesTypes {
+		if fileType == f {
+			return true
+		}
+	}
+	return false
 }
