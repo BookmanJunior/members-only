@@ -9,7 +9,7 @@ import (
 	"github.com/bookmanjunior/members-only/config"
 )
 
-type customError map[string]string
+type CustomError map[string]string
 
 func WriteJSON(w http.ResponseWriter, code int, v any) error {
 	w.Header().Set("Content-Type", "application/json")
@@ -24,7 +24,7 @@ func serverError(w http.ResponseWriter, a *config.Application, err error) {
 	http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 }
 
-func clientError(w http.ResponseWriter, a *config.Application, err error, status int, message customError) {
+func clientError(w http.ResponseWriter, a *config.Application, err error, status int, message CustomError) {
 	a.ErrorLog.Println(err)
 	WriteJSON(w, status, message)
 }
