@@ -49,8 +49,8 @@ func (u *UserModel) GetById(id int) (User, error) {
 	"password",
 	"avatar_color",
 	"avatar_url",
-	"limit_size",
-	"admin" from "users"
+	"admin",
+	"limit_size" from "users"
 	inner join "avatars" on users.avatar = avatars.id and users.id = $1
 	inner join file_limit on users.file_limit_id = file_limit.limit_id`
 
