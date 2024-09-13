@@ -28,12 +28,11 @@ func HandleLogin(app *config.Application) http.HandlerFunc {
 
 		user, err := app.Users.GetByUsername(loginForm.Username)
 
-		if err == sql.ErrNoRows {
-			badCredentials(w, app, err)
-			return
-		}
-
 		if err != nil {
+			if err == sql.ErrNoRows {
+				badCredentials(w, app, err)
+				return
+			}
 			serverError(w, app, err)
 			return
 		}
