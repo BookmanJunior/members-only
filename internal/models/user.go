@@ -24,7 +24,7 @@ func (u *UserModel) Insert(username, password string, avatar int) (int, error) {
 
 	var userId int
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 10)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 15)
 
 	if err != nil {
 		return userId, err
