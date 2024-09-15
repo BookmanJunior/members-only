@@ -44,14 +44,14 @@ func (u *UserModel) Insert(username, password string, avatar int) (int, error) {
 func (u *UserModel) GetById(id int) (User, error) {
 	queryString := `
 	select
-	users.id,
+	users.user_id,
 	"username",
 	"password",
 	"avatar_color",
 	"avatar_url",
 	"admin",
 	"limit_size" from "users"
-	inner join "avatars" on users.avatar = avatars.id and users.id = $1
+	inner join "avatars" on users.avatar = avatars.avatar_id and users.user_id = $1
 	inner join file_limit on users.file_limit_id = file_limit.limit_id`
 
 	user := User{}
@@ -77,14 +77,14 @@ func (u *UserModel) GetById(id int) (User, error) {
 func (u *UserModel) GetByUsername(username string) (User, error) {
 	queryString := `
 	select
-	users.id,
+	users.user_id,
 	"username",
 	"password",
 	"avatar_color",
 	"avatar_url",
 	"admin",
 	"limit_size" from "users"
-	inner join "avatars" on users.avatar = avatars.id and lower(username) = $1
+	inner join "avatars" on users.avatar = avatars.avatar_id and lower(username) = $1
 	inner join file_limit on users.file_limit_id = file_limit.limit_id`
 
 	var user User

@@ -27,7 +27,7 @@ func (a *AvatarModel) Insert(avatar_color, avatar_url string) error {
 func (a *AvatarModel) Get(id int) (Avatar, error) {
 	avatar := Avatar{}
 
-	res := a.DB.QueryRow(`select "avatar_color", "avatar_url", "id" from "avatars" where "id" = $1`, id)
+	res := a.DB.QueryRow(`select "avatar_color", "avatar_url", "id" from "avatars" where "avatar_id" = $1`, id)
 
 	err := res.Scan(&avatar.Color, &avatar.Url, &avatar.id)
 
@@ -41,7 +41,7 @@ func (a *AvatarModel) Get(id int) (Avatar, error) {
 func (a *AvatarModel) GetAll() ([]Avatar, error) {
 	var avatars []Avatar
 
-	res, err := a.DB.Query(`select "avatar_color", "avatar_url", "id" from avatars`)
+	res, err := a.DB.Query(`select "avatar_color", "avatar_url", "avatar_id" from avatars`)
 
 	if err != nil {
 		return nil, err
