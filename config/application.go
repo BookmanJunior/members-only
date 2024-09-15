@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/bookmanjunior/members-only/internal/cloud"
+	"github.com/bookmanjunior/members-only/internal/hub"
 	"github.com/bookmanjunior/members-only/internal/models"
 )
 
@@ -14,4 +15,5 @@ type Application struct {
 	Messages *models.MessageModel
 	Avatar   *models.AvatarModel
 	Cloud    cloud.Cloud
+	Hub      *hub.Hub
 }
