@@ -11,6 +11,7 @@ import (
 	"github.com/bookmanjunior/members-only/config"
 	"github.com/bookmanjunior/members-only/internal/auth"
 	"github.com/bookmanjunior/members-only/internal/filter"
+	"github.com/bookmanjunior/members-only/internal/models"
 	"github.com/bookmanjunior/members-only/internal/utils"
 	"github.com/bookmanjunior/members-only/internal/validator"
 )
@@ -75,7 +76,7 @@ func HandleMessagePost(app *config.Application) http.HandlerFunc {
 		}
 
 		files := r.MultipartForm.File
-		var messageId int
+		var msg models.Message
 		var uploadedFilesUrl []string
 
 		if len(files) > 0 {
@@ -112,10 +113,10 @@ func HandleMessagePost(app *config.Application) http.HandlerFunc {
 		}
 
 		if len(uploadedFilesUrl) <= 0 {
-			messageId, err = app.Messages.Insert(message.Message, int(currentUser.Id))
+			msg, err = app.Messages.Insert(message.Message, int(currentUser.Id))
 		} else {
 			fileUrls := strings.Join(uploadedFilesUrl, " ")
-			messageId, err = app.Messages.Insert(fileUrls+" "+message.Message, currentUser.Id)
+			msg, err = app.Messages.Insert(fileUrls+" "+message.Message, currentUser.Id)
 		}
 
 		if err != nil {
@@ -123,14 +124,7 @@ func HandleMessagePost(app *config.Application) http.HandlerFunc {
 			return
 		}
 
-		messageRes, err := app.Messages.GetById(messageId)
-
-		if err != nil {
-			serverError(w, app, err)
-			return
-		}
-
-		WriteJSON(w, http.StatusOK, messageRes)
+		WriteJSON(w, http.StatusOK, msg)
 	}
 }
 
