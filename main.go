@@ -11,6 +11,7 @@ import (
 	"github.com/bookmanjunior/members-only/api"
 	"github.com/bookmanjunior/members-only/config"
 	"github.com/bookmanjunior/members-only/internal/cloud"
+	"github.com/bookmanjunior/members-only/internal/hub"
 	"github.com/bookmanjunior/members-only/internal/models"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/joho/godotenv"
@@ -47,6 +48,9 @@ func main() {
 		errorLog.Fatal(err)
 	}
 
+	hub := hub.CreateNewHub()
+	go hub.Run()
+
 	app := &config.Application{
 		ErrorLog: errorLog,
 		InfoLog:  infoLog,
@@ -54,6 +58,7 @@ func main() {
 		Messages: &models.MessageModel{DB: db},
 		Avatar:   &models.AvatarModel{DB: db},
 		Cloud:    &Cloudinary,
+		Hub:      hub,
 	}
 
 	server := &http.Server{
