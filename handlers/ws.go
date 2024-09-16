@@ -34,7 +34,7 @@ func HandleWs(a *config.Application) http.HandlerFunc {
 			return
 		}
 
-		client := hub.CreateNewClient(user, a.Hub, conn)
+		client := hub.CreateNewClient(user, conn, a.Hub, a.Messages)
 
 		client.Hub.RegisterCh <- client
 
