@@ -228,8 +228,9 @@ func (m *MessageModel) UpdateMessage(messageId int, newMessage string) (Message,
 		`
 	with updated_message as (
 	update messages
-	set message_body = $1,
+	set message_body = $2,
 	modified_at = now()
+	where message_id = $1
 	returning *
 	)
 	select
@@ -246,7 +247,7 @@ func (m *MessageModel) UpdateMessage(messageId int, newMessage string) (Message,
 	join avatars on users.avatar = avatars.avatar_id
 	`
 
-	res, err := m.DB.Query(queryString, newMessage)
+	res, err := m.DB.Query(queryString, messageId, newMessage)
 
 	if err != nil {
 		return Message{}, err
