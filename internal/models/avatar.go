@@ -15,8 +15,8 @@ type AvatarModel struct {
 }
 
 func (a *AvatarModel) Insert(avatar_color, avatar_url string) error {
-	_, err := a.DB.Exec(`insert into avatars("name", "url") values($1, $2)`, avatar_color, avatar_url)
-
+	queryString := `insert into avatars("name", "url") values($1, $2)`
+	_, err := a.DB.Exec(queryString, avatar_color, avatar_url)
 	if err != nil {
 		return err
 	}
@@ -26,9 +26,8 @@ func (a *AvatarModel) Insert(avatar_color, avatar_url string) error {
 
 func (a *AvatarModel) Get(id int) (Avatar, error) {
 	avatar := Avatar{}
-
-	res := a.DB.QueryRow(`select "avatar_color", "avatar_url", "id" from "avatars" where "avatar_id" = $1`, id)
-
+	queryString := `select "avatar_color", "avatar_url", "avatar_id" from "avatars" where "avatar_id" = $1`
+	res := a.DB.QueryRow(queryString, id)
 	err := res.Scan(&avatar.Color, &avatar.Url, &avatar.id)
 
 	if err != nil {
@@ -40,9 +39,8 @@ func (a *AvatarModel) Get(id int) (Avatar, error) {
 
 func (a *AvatarModel) GetAll() ([]Avatar, error) {
 	var avatars []Avatar
-
-	res, err := a.DB.Query(`select "avatar_color", "avatar_url", "avatar_id" from avatars`)
-
+	queryString := `select "avatar_color", "avatar_url", "avatar_id" from avatars`
+	res, err := a.DB.Query(queryString)
 	if err != nil {
 		return nil, err
 	}
