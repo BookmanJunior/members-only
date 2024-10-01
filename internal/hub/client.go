@@ -45,6 +45,7 @@ func (c *Client) Read() {
 		if err != nil {
 			fmt.Println(err)
 			c.Conn.Close()
+			break
 		}
 
 		switch msg.Headers.Method {
