@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/joho/godotenv"
 )
 
@@ -16,7 +16,8 @@ type UserClaim struct {
 }
 
 const (
-	bearerTokenExp = 10 * time.Minute
+	bearerTokenExp  = 10 * time.Minute
+	refreshTokenExp = 24 * 7 * time.Hour
 )
 
 var secretKey []byte
@@ -37,7 +38,6 @@ func CreateToken(currentUser UserClaim) (string, error) {
 	})
 
 	tokenString, err := token.SignedString(secretKey)
-
 	if err != nil {
 		return "", err
 	}
@@ -45,12 +45,26 @@ func CreateToken(currentUser UserClaim) (string, error) {
 	return tokenString, nil
 }
 
+func CreateRefreshToken(userId int) (string, error) {
+	refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"id":  userId,
+		"exp": time.Now().Add(refreshTokenExp).Unix(),
+	})
+
+	refreshTokenString, err := refreshToken.SignedString(secretKey)
+	if err != nil {
+		return "", err
+	}
+
+	return refreshTokenString, nil
+}
+
 func VerifyToken(tokenString string) (jwt.MapClaims, error) {
 	var claims jwt.MapClaims
+
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		return secretKey, nil
 	})
-
 	if err != nil {
 		return claims, err
 	}
