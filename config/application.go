@@ -14,6 +14,8 @@ type Application struct {
 	Users    *models.UserModel
 	Messages *models.MessageModel
 	Avatar   *models.AvatarModel
+	Servers  *models.ServerModel
+	Channels *models.ChannelModel
 	Cloud    cloud.Cloud
 	Hub      *hub.Hub
 }

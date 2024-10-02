@@ -57,6 +57,8 @@ func main() {
 		Users:    &models.UserModel{DB: db},
 		Messages: &models.MessageModel{DB: db},
 		Avatar:   &models.AvatarModel{DB: db},
+		Servers:  &models.ServerModel{DB: db},
+		Channels: &models.ChannelModel{DB: db},
 		Cloud:    &Cloudinary,
 		Hub:      hub,
 	}
