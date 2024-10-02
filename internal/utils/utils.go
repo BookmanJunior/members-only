@@ -33,6 +33,10 @@ func CopyFile(app *config.Application, fileHeader *multipart.FileHeader, file mu
 	return nil
 }
 
+func RemoveCopiedFile(fileName string) error {
+	return os.Remove(filepath.Join("./attachments", filepath.Base(fileName)))
+}
+
 func CheckFileType(file multipart.File) bool {
 	peek := make([]byte, 512)
 	file.Read(peek)
