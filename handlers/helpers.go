@@ -49,3 +49,7 @@ func badCredentials(w http.ResponseWriter) {
 func Unauthorized(w http.ResponseWriter) {
 	clientError(w, http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized))
 }
+
+func Forbidden(w http.ResponseWriter) {
+	clientError(w, http.StatusForbidden, http.StatusText(http.StatusForbidden))
+}
