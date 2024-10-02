@@ -12,15 +12,19 @@ import (
 	"github.com/bookmanjunior/members-only/internal/pdf"
 )
 
-func HandleGetMessagesAsPdf(a *config.Application) http.HandlerFunc {
+func HandleGetMessagesAsPdf(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		page, err := strconv.Atoi(r.URL.Query().Get("page"))
-		currentUser := r.Context().Value("current_user").(auth.UserClaim)
-
 		if err != nil {
-			clientError(w, a, err, http.StatusBadRequest, map[string]string{"error": "Wrong page number"})
+			clientError(w, http.StatusBadRequest, "Invalid page number")
 			return
 		}
+
+		if page < 1 {
+			page = 1
+		}
+
+		currentUser := r.Context().Value("current_user").(auth.UserClaim)
 
 		filters := filter.Filter{
 			Page:      page,
@@ -30,7 +34,10 @@ func HandleGetMessagesAsPdf(a *config.Application) http.HandlerFunc {
 			Order:     r.URL.Query().Get("order"),
 		}
 
-		messages, _, err := a.Messages.Get(filters, currentUser.Id)
+		messages, _, err := app.Messages.Get(filters, currentUser.Id)
+		if err != nil {
+			serverError(w, app, err)
+		}
 
 		fileName := "messages" + strconv.Itoa(rand.Intn(10000)) + ".pdf"
 		pdf.Generate(messages, fileName)

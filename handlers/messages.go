@@ -3,8 +3,6 @@ package handlers
 import (
 	"fmt"
 	"net/http"
-	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -23,12 +21,14 @@ type messagePostRequest struct {
 
 func HandleMessagesGet(a *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		page, err := strconv.Atoi(r.URL.Query().Get("page"))
 		currentUser := r.Context().Value("current_user").(auth.UserClaim)
-
-		if err != nil || page < 1 || page > 1000 {
-			clientError(w, a, err, http.StatusBadRequest, CustomError{"message": "Wrong page number"})
+		page, err := strconv.Atoi(r.URL.Query().Get("page"))
+		if err != nil {
+			clientError(w, http.StatusBadRequest, "Invalid page number")
 			return
+		}
+		if page <= 0 {
+			page = 1
 		}
 
 		filters := filter.Filter{
@@ -42,7 +42,7 @@ func HandleMessagesGet(a *config.Application) http.HandlerFunc {
 		messages, metadata, err := a.Messages.Get(filters, currentUser.Id)
 
 		if len(messages) <= 0 {
-			WriteJSON(w, http.StatusNotFound, CustomError{"message": "No records"})
+			responseError(w, http.StatusOK, "No records")
 			return
 		}
 
@@ -64,7 +64,7 @@ func HandleMessagePost(app *config.Application) http.HandlerFunc {
 
 		if err != nil {
 			errMsg := fmt.Sprintf("File size can't exceed %v mb", currentUser.FileSizeLimit)
-			clientError(w, app, err, http.StatusRequestEntityTooLarge, map[string]string{"error": errMsg})
+			clientError(w, http.StatusRequestEntityTooLarge, errMsg)
 			return
 		}
 
@@ -90,7 +90,7 @@ func HandleMessagePost(app *config.Application) http.HandlerFunc {
 					}
 
 					defer data.Close()
-					defer os.Remove(filepath.Join("./attachments", fileHeader.Filename))
+					defer utils.RemoveCopiedFile(fileHeader.Filename)
 					isCorrectFileType := utils.CheckFileType(data)
 					if isCorrectFileType {
 						err := utils.CopyFile(app, fileHeader, data)
@@ -98,7 +98,7 @@ func HandleMessagePost(app *config.Application) http.HandlerFunc {
 							WriteJSON(w, http.StatusInternalServerError, CustomError{"message": "Failed to copy file"})
 							return
 						}
-						uploadedFileUrl, err := app.Cloud.UploadFile(currentUser.Id, filepath.Join("./attachments", filepath.Base(fileHeader.Filename)), fileHeader.Filename)
+						uploadedFileUrl, err := app.Cloud.UploadFile(currentUser.Id, fileHeader.Filename)
 						if err != nil {
 							serverError(w, app, err)
 							return
@@ -120,7 +120,7 @@ func HandleMessagePost(app *config.Application) http.HandlerFunc {
 		}
 
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusNotFound)
+			serverError(w, app, err)
 			return
 		}
 
@@ -144,9 +144,8 @@ func HandleMessageDelete(app *config.Application) http.HandlerFunc {
 		}
 
 		err = app.Messages.Delete(message_id)
-
 		if err != nil {
-			clientError(w, app, err, http.StatusBadRequest, CustomError{"message": http.StatusText(http.StatusBadRequest)})
+			serverError(w, app, err)
 			return
 		}
 

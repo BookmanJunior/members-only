@@ -3,6 +3,7 @@ package handlers
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/bookmanjunior/members-only/config"
@@ -18,19 +19,16 @@ type handleLoginForm struct {
 func HandleLogin(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		loginForm := &handleLoginForm{}
-		userClaim := auth.UserClaim{}
 		err := json.NewDecoder(r.Body).Decode(loginForm)
-
 		if err != nil {
-			badCredentials(w, app, err)
+			badCredentials(w)
 			return
 		}
 
 		user, err := app.Users.GetByUsername(loginForm.Username)
-
 		if err != nil {
 			if err == sql.ErrNoRows {
-				badCredentials(w, app, err)
+				badCredentials(w)
 				return
 			}
 			serverError(w, app, err)
@@ -38,21 +36,27 @@ func HandleLogin(app *config.Application) http.HandlerFunc {
 		}
 
 		if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(loginForm.Password)); err != nil {
-			badCredentials(w, app, err)
+			badCredentials(w)
 			return
 		}
 
-		userClaim.Id = user.Id
-		userClaim.Admin = user.Admin
-		userClaim.FileSizeLimit = user.FileSizeLimit
-
-		bearerToken, err := auth.CreateToken(userClaim)
-
+		bearerToken, err := auth.CreateToken(auth.UserClaim{
+			Id:            user.Id,
+			Admin:         user.Admin,
+			FileSizeLimit: user.FileSizeLimit,
+		})
 		if err != nil {
 			serverError(w, app, err)
 			return
 		}
 
-		WriteJSON(w, http.StatusOK, map[string]any{"bearer": "Bearer " + bearerToken, "user": user})
+		refreshToken, err := auth.CreateRefreshToken(user.Id)
+		if err != nil {
+			fmt.Println("refresh error:", refreshToken)
+			serverError(w, app, err)
+			return
+		}
+
+		WriteJSON(w, http.StatusOK, map[string]any{"bearer": "Bearer " + bearerToken, "refresh": refreshToken, "user": user})
 	}
 }

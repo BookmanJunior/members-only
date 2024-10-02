@@ -2,9 +2,8 @@ package middleware
 
 import (
 	"context"
-	"errors"
-	"fmt"
 	"net/http"
+	"runtime/debug"
 	"strings"
 	"time"
 
@@ -13,27 +12,13 @@ import (
 	"github.com/bookmanjunior/members-only/internal/auth"
 )
 
-type LoggerWriter struct {
-	http.ResponseWriter
-	codeStatus int
-}
-
-func (w *LoggerWriter) WriteHeader(codeStatus int) {
-	w.ResponseWriter.WriteHeader(codeStatus)
-	w.codeStatus = codeStatus
-}
-
-func Logger(a *config.Application, next http.Handler) http.Handler {
+func Logger(app *config.Application, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 
-		loggerWriter := LoggerWriter{
-			ResponseWriter: w,
-		}
+		next.ServeHTTP(w, r)
 
-		next.ServeHTTP(&loggerWriter, r)
-
-		a.InfoLog.Printf("%s %s %s %d %s %s", r.RemoteAddr, r.Proto, r.Method, loggerWriter.codeStatus, r.URL.RequestURI(), time.Since(start))
+		app.InfoLog.Printf("%s %s %s %s %s", r.RemoteAddr, r.Proto, r.Method, r.URL.RequestURI(), time.Since(start))
 
 	})
 }
@@ -43,7 +28,7 @@ func RecoverPanic(app *config.Application, next http.Handler) http.Handler {
 		defer func() {
 			if err := recover(); err != nil {
 				w.Header().Set("Connection", "close	")
-				app.ErrorLog.Printf("%s\n", err)
+				app.ErrorLog.Printf("%s\n%s", err, debug.Stack())
 				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			}
 		}()
@@ -52,21 +37,18 @@ func RecoverPanic(app *config.Application, next http.Handler) http.Handler {
 	})
 }
 
-func IsAuthorized(a *config.Application, next http.Handler) http.HandlerFunc {
+func IsAuthorized(app *config.Application, next http.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
-
 		if authHeader == "" {
-			handlers.Unauthorized(w, a, errors.New("missing Authorization token"))
+			handlers.Unauthorized(w)
 			return
 		}
 
 		bearerToken := strings.Split(authHeader, " ")[1]
-
 		claims, err := auth.VerifyToken(bearerToken)
-
 		if err != nil {
-			handlers.Unauthorized(w, a, err)
+			handlers.Unauthorized(w)
 			return
 		}
 
@@ -80,7 +62,6 @@ func IsAuthorized(a *config.Application, next http.Handler) http.HandlerFunc {
 		ctx = context.WithValue(ctx, "current_user", currentUser)
 		r = r.WithContext(ctx)
 
-		fmt.Println("Current claim: ", claims)
 		next.ServeHTTP(w, r)
 	}
 }
