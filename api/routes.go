@@ -11,6 +11,7 @@ import (
 func Router(app *config.Application) http.Handler {
 	router := http.NewServeMux()
 	router.HandleFunc("POST /login", handlers.HandleLogin(app))
+	router.HandleFunc("POST /refresh-token", handlers.HandleRefreshAccessToken(app))
 	router.HandleFunc("GET /users", middleware.IsAuthorized(app, handlers.HandleUserGet(app)))
 	router.HandleFunc("POST /users", handlers.HandleUserPost(app))
 	router.HandleFunc("GET /messages", middleware.IsAuthorized(app, handlers.HandleMessagesGet(app)))
@@ -18,7 +19,8 @@ func Router(app *config.Application) http.Handler {
 	router.HandleFunc("DELETE /messages/{id}", middleware.IsAuthorized(app, handlers.HandleMessageDelete(app)))
 	router.HandleFunc("GET /avatars", handlers.HandleGetAvatars(app))
 	router.HandleFunc("GET /files/messages", middleware.IsAuthorized(app, handlers.HandleGetMessagesAsPdf(app)))
+	router.HandleFunc("POST /servers", middleware.IsAuthorized(app, handlers.HandlePostServer(app)))
 	router.HandleFunc("GET /ws", middleware.IsAuthorized(app, handlers.HandleWs(app)))
 
-	return middleware.RecoverPanic(app, middleware.EnableCors(app, router))
+	return middleware.RecoverPanic(app, middleware.Logger(app, middleware.EnableCors(app, router)))
 }
