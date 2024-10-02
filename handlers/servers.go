@@ -54,7 +54,7 @@ func HandlePostServer(app *config.Application) http.HandlerFunc {
 			}
 		}
 
-		createServerRes, err := app.Server.CreateServerTx(serverName, serverIconUrl, currentUser.Id)
+		createServerRes, err := app.Servers.CreateServerTx(serverName, serverIconUrl, currentUser.Id)
 		if err != nil {
 			serverError(w, app, err)
 			return
