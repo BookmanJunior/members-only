@@ -9,7 +9,7 @@ import (
 	"github.com/bookmanjunior/members-only/config"
 )
 
-type CustomError map[string]string
+type CustomError map[string]any
 
 func WriteJSON(w http.ResponseWriter, code int, v any) error {
 	w.Header().Set("Content-Type", "application/json")
@@ -18,26 +18,34 @@ func WriteJSON(w http.ResponseWriter, code int, v any) error {
 	return json.NewEncoder(w).Encode(v)
 }
 
-func serverError(w http.ResponseWriter, a *config.Application, err error) {
+func responseError(w http.ResponseWriter, status int, message any) {
+	customError := CustomError{"message": message}
+
+	if err := WriteJSON(w, status, customError); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+}
+
+func serverError(w http.ResponseWriter, app *config.Application, err error) {
 	trace := fmt.Sprintf("%s\n%s", err.Error(), debug.Stack())
-	a.ErrorLog.Printf(trace)
-	http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+	app.ErrorLog.Println(trace)
+
+	responseError(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 }
 
-func clientError(w http.ResponseWriter, a *config.Application, err error, status int, message CustomError) {
-	a.ErrorLog.Println(err)
-	WriteJSON(w, status, message)
+func clientError(w http.ResponseWriter, status int, message any) {
+	responseError(w, status, message)
 }
 
-func notFound(w http.ResponseWriter, a *config.Application, err error) {
-	clientError(w, a, err, http.StatusNotFound, map[string]string{"error": "Not found"})
+func notFound(w http.ResponseWriter) {
+	clientError(w, http.StatusNotFound, "Resource not found")
 
 }
 
-func badCredentials(w http.ResponseWriter, a *config.Application, err error) {
-	clientError(w, a, err, http.StatusUnauthorized, map[string]string{"error": "Wrong username or password"})
+func badCredentials(w http.ResponseWriter) {
+	clientError(w, http.StatusForbidden, "Wrong username or password")
 }
 
-func Unauthorized(w http.ResponseWriter, a *config.Application, err error) {
-	WriteJSON(w, http.StatusUnauthorized, map[string]string{"error": http.StatusText(http.StatusUnauthorized)})
+func Unauthorized(w http.ResponseWriter) {
+	clientError(w, http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized))
 }
