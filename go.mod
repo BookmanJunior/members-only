@@ -4,7 +4,7 @@ go 1.22.3
 
 require (
 	github.com/cloudinary/cloudinary-go/v2 v2.9.0
-	github.com/golang-jwt/jwt v3.2.2+incompatible
+	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/gorilla/websocket v1.5.3
 	github.com/jackc/pgx/v5 v5.6.0
 	github.com/johnfercher/maroto/v2 v2.1.1
