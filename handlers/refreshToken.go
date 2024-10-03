@@ -17,7 +17,7 @@ func HandleRefreshAccessToken(app *config.Application) http.HandlerFunc {
 
 		err := json.NewDecoder(r.Body).Decode(&input)
 		if err != nil {
-			clientError(w, http.StatusBadRequest, "Invalid refresh token format")
+			badRequest(w, "Invalid refresh token format")
 			return
 		}
 

@@ -14,9 +14,9 @@ import (
 
 func HandleGetMessagesAsPdf(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		page, err := strconv.Atoi(r.URL.Query().Get("page"))
+		page, err := parseIdParam(r.URL.Query().Get("page"))
 		if err != nil {
-			clientError(w, http.StatusBadRequest, "Invalid page number")
+			badRequest(w, "Invalid page number")
 			return
 		}
 

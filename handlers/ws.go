@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/bookmanjunior/members-only/config"
@@ -10,14 +9,12 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-func HandleWs(a *config.Application) http.HandlerFunc {
+func HandleWs(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		currentUser := r.Context().Value("current_user").(auth.UserClaim)
-		user, err := a.Users.GetById(currentUser.Id)
-
+		user, err := app.Users.GetById(currentUser.Id)
 		if err != nil {
-			fmt.Println(err)
-			WriteJSON(w, http.StatusInternalServerError, CustomError{"message": "Failed to get user"})
+			serverError(w, app, err)
 			return
 		}
 
@@ -27,19 +24,16 @@ func HandleWs(a *config.Application) http.HandlerFunc {
 		}
 
 		conn, err := upgrader.Upgrade(w, r, w.Header())
-
 		if err != nil {
-			fmt.Println(err)
-			serverError(w, a, err)
+			serverError(w, app, err)
 			return
 		}
 
-		client := hub.CreateNewClient(user, conn, a.Hub, a.Messages)
+		client := hub.CreateNewClient(user, conn, app.Hub, app.Messages)
 
 		client.Hub.RegisterCh <- client
 
 		go client.Read()
 		go client.Write()
-
 	}
 }

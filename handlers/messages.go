@@ -3,7 +3,6 @@ package handlers
 import (
 	"fmt"
 	"net/http"
-	"strconv"
 	"strings"
 
 	"github.com/bookmanjunior/members-only/config"
@@ -22,9 +21,9 @@ type messagePostRequest struct {
 func HandleMessagesGet(a *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		currentUser := r.Context().Value("current_user").(auth.UserClaim)
-		page, err := strconv.Atoi(r.URL.Query().Get("page"))
+		page, err := parseIdParam(r.URL.Query().Get("page"))
 		if err != nil {
-			clientError(w, http.StatusBadRequest, "Invalid page number")
+			badRequest(w, "Invalid page number")
 			return
 		}
 		if page <= 0 {
@@ -61,17 +60,16 @@ func HandleMessagePost(app *config.Application) http.HandlerFunc {
 		currentUser := r.Context().Value("current_user").(auth.UserClaim)
 		r.Body = http.MaxBytesReader(w, r.Body, int64(currentUser.FileSizeLimit)<<20)
 		err := r.ParseMultipartForm(int64(currentUser.FileSizeLimit) << 20)
-
 		if err != nil {
 			errMsg := fmt.Sprintf("File size can't exceed %v mb", currentUser.FileSizeLimit)
-			clientError(w, http.StatusRequestEntityTooLarge, errMsg)
+			responseError(w, http.StatusRequestEntityTooLarge, errMsg)
 			return
 		}
 
 		message.Message = r.Form.Get("message")
 		message.CheckField(message.NotBlank(message.Message), "message", "Message can't be empty")
 		if !message.Valid() {
-			WriteJSON(w, http.StatusBadRequest, message.FieldErrors)
+			badRequest(w, message.FieldErrors)
 			return
 		}
 
@@ -83,7 +81,6 @@ func HandleMessagePost(app *config.Application) http.HandlerFunc {
 			for _, file := range files {
 				for _, fileHeader := range file {
 					data, err := fileHeader.Open()
-
 					if err != nil {
 						serverError(w, app, err)
 						return
@@ -91,6 +88,7 @@ func HandleMessagePost(app *config.Application) http.HandlerFunc {
 
 					defer data.Close()
 					defer utils.RemoveCopiedFile(fileHeader.Filename)
+
 					isCorrectFileType := utils.CheckFileType(data)
 					if isCorrectFileType {
 						err := utils.CopyFile(app, fileHeader, data)
@@ -131,15 +129,14 @@ func HandleMessagePost(app *config.Application) http.HandlerFunc {
 func HandleMessageDelete(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		currentUser := r.Context().Value("current_user").(auth.UserClaim)
-		message_id, err := strconv.Atoi(r.PathValue("id"))
-
+		message_id, err := parseIdParam(r.PathValue("id"))
 		if err != nil {
-			WriteJSON(w, http.StatusNotFound, CustomError{"message": "Message not found"})
+			badRequest(w, err.Error())
 			return
 		}
 
 		if !currentUser.Admin {
-			WriteJSON(w, http.StatusUnauthorized, CustomError{"message": http.StatusText(http.StatusUnauthorized)})
+			Unauthorized(w)
 			return
 		}
 

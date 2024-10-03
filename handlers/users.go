@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/bookmanjunior/members-only/config"
 	"github.com/bookmanjunior/members-only/internal/validator"
@@ -21,9 +20,9 @@ type userPostForm struct {
 
 func HandleUserGet(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		userId, err := strconv.Atoi(r.URL.Query().Get("id"))
-		if err != nil || userId < 0 {
-			notFound(w)
+		userId, err := parseIdParam(r.URL.Query().Get("id"))
+		if err != nil {
+			badRequest(w, err.Error())
 			return
 		}
 
@@ -47,7 +46,7 @@ func HandleUserPost(app *config.Application) http.HandlerFunc {
 		var form userPostForm
 		err := json.NewDecoder(r.Body).Decode(&form)
 		if err != nil {
-			clientError(w, http.StatusBadRequest, "Bad request")
+			badRequest(w, "Bad request")
 			return
 		}
 
@@ -73,7 +72,7 @@ func HandleUserPost(app *config.Application) http.HandlerFunc {
 		}
 
 		if !form.Valid() {
-			clientError(w, http.StatusBadRequest, form.Validator.FieldErrors)
+			badRequest(w, form.Validator.FieldErrors)
 			return
 		}
 

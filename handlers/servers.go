@@ -20,7 +20,8 @@ func HandlePostServer(app *config.Application) http.HandlerFunc {
 		r.Body = http.MaxBytesReader(w, r.Body, 3<<20)
 		err := r.ParseMultipartForm(3 << 20)
 		if err != nil {
-			clientError(w, http.StatusUnprocessableEntity, CustomError{"message": "Server image can't be greater than 3 mb"})
+			statusCode, parsedErr := parseMultipartFormErrors(err)
+			responseError(w, statusCode, parsedErr.Error())
 			return
 		}
 
@@ -38,7 +39,7 @@ func HandlePostServer(app *config.Application) http.HandlerFunc {
 
 			isCorrectFileType := utils.CheckFileType(file)
 			if !isCorrectFileType {
-				WriteJSON(w, http.StatusBadRequest, CustomError{"message": "Icon must be of type jpg or png."})
+				badRequest(w, "Icon must be of type jpg or png.")
 				return
 			}
 
