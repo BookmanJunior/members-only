@@ -40,12 +40,6 @@ func HandleLogin(app *config.Application) http.HandlerFunc {
 			return
 		}
 
-		user.Servers, err = app.Servers.GetUsersServers(user.Id)
-		if err != nil {
-			serverError(w, app, err)
-			return
-		}
-
 		bearerToken, err := auth.CreateToken(auth.UserClaim{
 			Id:            user.Id,
 			Admin:         user.Admin,
