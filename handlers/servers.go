@@ -11,6 +11,31 @@ import (
 
 func HandleGetServer(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		currentUser := r.Context().Value("current_user").(auth.UserClaim)
+		serverId, err := parseIdParam(r.PathValue("id"))
+		if err != nil {
+			badRequest(w, err.Error())
+			return
+		}
+
+		isAllowed, err := app.ServerMembers.IsAllowed(serverId, currentUser.Id)
+		if err != nil {
+			serverError(w, app, err)
+			return
+		}
+
+		if !isAllowed {
+			Forbidden(w)
+			return
+		}
+
+		server, err := app.Servers.GetById(serverId)
+		if err != nil {
+			serverError(w, app, err)
+			return
+		}
+
+		WriteJSON(w, http.StatusOK, server)
 	}
 }
 
