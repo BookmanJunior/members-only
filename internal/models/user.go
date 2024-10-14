@@ -12,7 +12,8 @@ type User struct {
 	Password      string `json:"-"`
 	FileSizeLimit int    `json:"file_limit,omitempty"`
 	Avatar
-	Admin bool `json:"admin,omitempty"`
+	Admin   bool     `json:"admin,omitempty"`
+	Servers []Server `json:"servers,omitempty"`
 }
 
 type UserModel struct {
@@ -25,15 +26,12 @@ func (u *UserModel) Insert(username, password string, avatar int) (int, error) {
 	var userId int
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 15)
-
 	if err != nil {
 		return userId, err
 	}
 
 	res := u.DB.QueryRow(queryString, username, hashedPassword, avatar)
-
 	err = res.Scan(&userId)
-
 	if err != nil {
 		return userId, err
 	}
