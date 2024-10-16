@@ -222,3 +222,19 @@ func (s ServerModel) Delete(serverId int) (Server, error) {
 
 	return server, nil
 }
+
+func (s ServerModel) GetOwner(serverId, userId int) (int, error) {
+	var owner_id int
+	queryString :=
+		`
+	select owner_id
+	from servers
+	where server_id = $1 and owner_id = $2
+	`
+
+	err := s.DB.QueryRow(queryString, serverId, userId).Scan(&owner_id)
+	if err != nil {
+		return owner_id, err
+	}
+	return owner_id, nil
+}
