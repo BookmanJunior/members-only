@@ -7,6 +7,8 @@ import (
 	"strconv"
 )
 
+type Envelope map[string]any
+
 func WriteJSON(w http.ResponseWriter, code int, v any) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("X-Content-Type-Options", "nosniff")
