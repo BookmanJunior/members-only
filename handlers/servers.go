@@ -80,13 +80,18 @@ func HandlePostServer(app *config.Application) http.HandlerFunc {
 			}
 		}
 
-		createServerRes, err := app.Servers.CreateServerTx(serverName, serverIconUrl, currentUser.Id)
+		newServerId, err := app.Servers.CreateServerTx(serverName, serverIconUrl, currentUser.Id)
 		if err != nil {
 			serverError(w, app, err)
 			return
 		}
 
-		app.InfoLog.Printf("Created server %v by user %v", createServerRes.Id, currentUser.Id)
-		WriteJSON(w, http.StatusOK, CustomError{"message": "Created Server"})
+		serverInfo, err := app.Servers.GetById(newServerId)
+		if err != nil {
+			serverError(w, app, err)
+			return
+		}
+
+		WriteJSON(w, http.StatusOK, serverInfo)
 	}
 }
