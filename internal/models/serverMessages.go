@@ -3,6 +3,8 @@ package models
 import (
 	"database/sql"
 	"time"
+
+	"github.com/bookmanjunior/members-only/internal/filter"
 )
 
 type ServerMessage struct {
@@ -20,7 +22,7 @@ type ServerMessageModel struct {
 	DB *sql.DB
 }
 
-func (sm *ServerMessageModel) GetMessagesByChannelIdAndUserId(channelId, userId int) ([]ServerMessage, error) {
+func (sm *ServerMessageModel) GetMessagesByChannelIdAndUserId(channelId, userId int, filters filter.Filter) ([]ServerMessage, error) {
 	var messages []ServerMessage
 	queryString := `
 	select *
@@ -50,11 +52,12 @@ func (sm *ServerMessageModel) GetMessagesByChannelIdAndUserId(channelId, userId 
     join avatars on users.avatar = avatars.avatar_id
     where channel_id = $2
     order by message_id desc
+    limit $3 offset $4
     ) as sub
     order by message_id asc;
 	`
 
-	res, err := sm.DB.Query(queryString, userId, channelId)
+	res, err := sm.DB.Query(queryString, userId, channelId, filters.Page_Size, filters.CurrentPage())
 	if err != nil {
 		return nil, err
 	}
