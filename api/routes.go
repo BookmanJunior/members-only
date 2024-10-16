@@ -22,8 +22,9 @@ func Router(app *config.Application) http.Handler {
 	router.HandleFunc("GET /files/messages", middleware.IsAuthorized(app, handlers.HandleGetMessagesAsPdf(app)))
 	router.HandleFunc("GET /servers/{id}", middleware.IsAuthorized(app, handlers.HandleGetServer(app)))
 	router.HandleFunc("POST /servers", middleware.IsAuthorized(app, handlers.HandlePostServer(app)))
-	router.HandleFunc("POST /invite", handlers.HandleServerInvitation(app))
+	router.HandleFunc("POST /invite", middleware.IsAuthorized(app, handlers.HandleServerInvitation(app)))
 	router.HandleFunc("GET /invite/{link}", middleware.IsAuthorized(app, handlers.CheckInvite(app)))
+	router.HandleFunc("GET /servers/{id}/{channelId}", middleware.IsAuthorized(app, handlers.HandleGetChannel(app)))
 	router.HandleFunc("GET /feed", middleware.IsAuthorized(app, handlers.HandleGetFeed(app)))
 	router.HandleFunc("GET /ws", middleware.IsAuthorized(app, handlers.HandleWs(app)))
 
