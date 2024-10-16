@@ -10,6 +10,8 @@ import (
 	"github.com/bookmanjunior/members-only/config"
 )
 
+type CustomError map[string]any
+
 func parseMultipartFormErrors(err error) (int, error) {
 	var maxBytesError *http.MaxBytesError
 	switch {
