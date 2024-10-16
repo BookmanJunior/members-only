@@ -38,7 +38,11 @@ func (sm *ServerMessageModel) GetMessagesByChannelIdAndUserId(channelId, userId 
     case
     when b.blocked_user_id is not null then true
     else false
-    end as blocked
+    end as blocked,
+    case
+    when modified_at is not null then true
+    else false
+    end as edited
     from server_messages as sm
     left join blocked_users as b on sm.user_id = b.blocked_user_id
     and b.user_id = $1
@@ -69,6 +73,7 @@ func (sm *ServerMessageModel) GetMessagesByChannelIdAndUserId(channelId, userId 
 			&serverMessage.ServerId,
 			&serverMessage.ChannelId,
 			&serverMessage.Blocked,
+			&serverMessage.Edited,
 		)
 		if err != nil {
 			return nil, err
