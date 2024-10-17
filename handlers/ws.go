@@ -17,6 +17,11 @@ func HandleWs(app *config.Application) http.HandlerFunc {
 			serverError(w, app, err)
 			return
 		}
+		user.Servers, err = app.Servers.GetUsersServers(currentUser.Id)
+		if err != nil {
+			serverError(w, app, err)
+			return
+		}
 
 		upgrader := websocket.Upgrader{
 			ReadBufferSize:  1024,
@@ -29,10 +34,8 @@ func HandleWs(app *config.Application) http.HandlerFunc {
 			return
 		}
 
-		client := hub.CreateNewClient(user, conn, app.Hub, app.Messages)
-
+		client := hub.CreateNewClient(user, conn, app.Hub, app.ServerMessages)
 		client.Hub.RegisterCh <- client
-
 		go client.Read()
 		go client.Write()
 	}
