@@ -13,6 +13,7 @@ import (
 	"github.com/bookmanjunior/members-only/internal/cloud"
 	"github.com/bookmanjunior/members-only/internal/hub"
 	"github.com/bookmanjunior/members-only/internal/models"
+	"github.com/bookmanjunior/members-only/internal/redis"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/joho/godotenv"
 )
@@ -21,7 +22,6 @@ const Red = "\033[31m"
 const White = "\033[97m"
 
 func main() {
-
 	infoLog := log.New(os.Stdout, White+"INFO\t", log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stderr, Red+"ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 	addr := flag.String("addr", ":3000", "HTTP network address")
@@ -34,16 +34,19 @@ func main() {
 	conncstring := fmt.Sprintf("user=%v password=%v host=%v port=%v dbname=%v sslmode=disable", os.Getenv("DB_USER"),
 		os.Getenv("DB_PASSWORD"), os.Getenv("DB_HOST"), os.Getenv("DB_PORT"), os.Getenv("DB_NAME"))
 	db, err := sql.Open("pgx", conncstring)
-
 	if err != nil {
 		errorLog.Fatal(err.Error())
+	}
+
+	redisClient, err := redis.Connect()
+	if err != nil {
+		errorLog.Fatal(err)
 	}
 
 	cloudinaryConnectString := fmt.Sprintf("cloudinary://%v:%v@%v", os.Getenv("Cloudinary_KEY"),
 		os.Getenv("Cloudinary_Secret"), os.Getenv("Cloudinary_Name"))
 	var Cloudinary cloud.Cloudinary
 	err = Cloudinary.Open(cloudinaryConnectString)
-
 	if err != nil {
 		errorLog.Fatal(err)
 	}
@@ -52,15 +55,18 @@ func main() {
 	go hub.Run()
 
 	app := &config.Application{
-		ErrorLog: errorLog,
-		InfoLog:  infoLog,
-		Users:    &models.UserModel{DB: db},
-		Messages: &models.MessageModel{DB: db},
-		Avatar:   &models.AvatarModel{DB: db},
-		Servers:  &models.ServerModel{DB: db},
-		Channels: &models.ChannelModel{DB: db},
-		Cloud:    &Cloudinary,
-		Hub:      hub,
+		ErrorLog:       errorLog,
+		InfoLog:        infoLog,
+		Users:          &models.UserModel{DB: db},
+		Messages:       &models.MessageModel{DB: db},
+		Avatar:         &models.AvatarModel{DB: db},
+		Servers:        &models.ServerModel{DB: db},
+		ServerMembers:  &models.ServerMembersModel{DB: db},
+		ServerMessages: &models.ServerMessageModel{DB: db},
+		Channels:       &models.ChannelModel{DB: db},
+		Redis:          redisClient,
+		Cloud:          &Cloudinary,
+		Hub:            hub,
 	}
 
 	server := &http.Server{
