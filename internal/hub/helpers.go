@@ -1,6 +1,8 @@
 package hub
 
-import "net/http"
+import (
+	"net/http"
+)
 
 func UnauthorizedError(responseMsg *WSResponseMessage) {
 	responseMsg.Type = "error"
@@ -17,4 +19,10 @@ func ServerError(responseMsg *WSResponseMessage) {
 func Success(responseMsg *WSResponseMessage) {
 	responseMsg.Type = "success"
 	responseMsg.StatusCode = http.StatusOK
+}
+
+func BadRequestError(responseMsg *WSResponseMessage) {
+	responseMsg.Type = "error"
+	responseMsg.StatusCode = http.StatusBadRequest
+	responseMsg.Message = http.StatusText(http.StatusBadRequest)
 }
