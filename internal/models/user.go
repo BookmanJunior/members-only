@@ -21,7 +21,7 @@ type UserModel struct {
 }
 
 func (u *UserModel) Insert(username, password string, avatar int) (int, error) {
-	queryString := `insert into users (username, password, avatar) values ($1, $2, $3) returning id`
+	queryString := `insert into users (username, password, avatar) values ($1, $2, $3) returning user_id`
 
 	var userId int
 
