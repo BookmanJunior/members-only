@@ -7,15 +7,16 @@ import (
 
 type Hub struct {
 	sync.Mutex
-	clients    map[*Client]bool
+	Clients    map[*Client]bool
 	RegisterCh chan *Client
 	unregister chan *Client
 	Broadcast  chan WSResponseMessage
+	Servers    map[int]map[*Client]bool
 }
 
 func CreateNewHub() *Hub {
 	return &Hub{
-		clients:    make(map[*Client]bool),
+		Clients:    make(map[*Client]bool),
 		RegisterCh: make(chan *Client),
 		unregister: make(chan *Client),
 		Broadcast:  make(chan WSResponseMessage),
@@ -30,17 +31,20 @@ func (h *Hub) Run() {
 		case client := <-h.unregister:
 			h.Unregister(client)
 		case msg := <-h.Broadcast:
-			for client := range h.clients {
-				client.Send <- msg
+			switch {
+			case msg.Type == "error":
+				h.BroadcastToUser(msg)
+			default:
+				h.BroadcastToServer(msg)
 			}
 		}
 	}
 }
 
 func (h *Hub) Register(client *Client) {
-	if _, exists := h.clients[client]; !exists {
+	if _, exists := h.Clients[client]; !exists {
 		h.Lock()
-		h.clients[client] = true
+		h.Clients[client] = true
 		h.Unlock()
 		fmt.Println("Registered User", client.User.Username)
 	}
@@ -48,8 +52,26 @@ func (h *Hub) Register(client *Client) {
 
 func (h *Hub) Unregister(client *Client) {
 	h.Lock()
-	delete(h.clients, client)
+	delete(h.Clients, client)
 	h.Unlock()
 	fmt.Println("Unregistered User", client.User.Username)
 
+}
+
+func (h *Hub) BroadcastToUser(msg WSResponseMessage) {
+	for client := range h.Clients {
+		if msg.Data.User.Id == client.User.Id {
+			client.Send <- msg
+		}
+	}
+}
+
+func (h *Hub) BroadcastToServer(msg WSResponseMessage) {
+	for client := range h.Clients {
+		for i := range client.User.Servers {
+			if msg.Data.ServerId == client.User.Servers[i].Id {
+				client.Send <- msg
+			}
+		}
+	}
 }
