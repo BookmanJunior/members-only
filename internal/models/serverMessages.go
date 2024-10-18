@@ -2,7 +2,6 @@ package models
 
 import (
 	"database/sql"
-	"fmt"
 	"time"
 
 	"github.com/bookmanjunior/members-only/internal/filter"
@@ -128,7 +127,6 @@ func (sm *ServerMessageModel) Insert(m ServerMessage) (ServerMessage, error) {
 		return newMessage, err
 	}
 
-	fmt.Println(newMessage)
 	return newMessage, nil
 }
 
@@ -179,16 +177,18 @@ func (sm *ServerMessageModel) Update(newMessage string, messageId, userId int) (
 	return updatedMessage, nil
 }
 
-func (sm *ServerMessageModel) Delete(messageId int) error {
+func (sm *ServerMessageModel) Delete(messageId, userId int) (int, error) {
+	var msgId int
 	queryString :=
 		`
 	delete from server_messages sm
-	where sm.message_id = $1
+	where sm.message_id = $1 and user_id = $2
+	returning message_id
 	`
-	_, err := sm.DB.Exec(queryString, messageId)
+	err := sm.DB.QueryRow(queryString, messageId, userId).Scan(&msgId)
 	if err != nil {
-		return err
+		return msgId, err
 	}
 
-	return nil
+	return msgId, nil
 }
