@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"database/sql"
+	"fmt"
 	"net/http"
 	"unicode/utf8"
 
@@ -93,5 +95,33 @@ func HandlePostServer(app *config.Application) http.HandlerFunc {
 		}
 
 		WriteJSON(w, http.StatusOK, serverInfo)
+	}
+}
+
+func HandleDeleteServer(app *config.Application) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		currentUser := r.Context().Value("current_user").(auth.UserClaim)
+		serverId, err := parseIdParam(r.PathValue("id"))
+		if err != nil {
+			badRequest(w, err.Error())
+			return
+		}
+
+		_, err = app.Servers.GetOwner(serverId, currentUser.Id)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				Unauthorized(w)
+				return
+			}
+		}
+
+		deletedServer, err := app.Servers.Delete(serverId)
+		if err != nil {
+			serverError(w, app, err)
+			return
+		}
+
+		resMsg := fmt.Sprintf("Deleted server: %v", deletedServer.Id)
+		WriteJSON(w, http.StatusOK, Envelope{"message": resMsg})
 	}
 }
