@@ -199,26 +199,82 @@ func (s ServerModel) Update(ser Server) (Server, error) {
 
 func (s ServerModel) Delete(serverId int) (Server, error) {
 	var server Server
-	queryString :=
-		`
-	delete
-	from servers
-	where server_id = $1
-	returning *
-	`
-
-	res, err := s.DB.Query(queryString, serverId)
+	tx, err := s.DB.Begin()
 	if err != nil {
 		return server, err
 	}
 
-	for res.Next() {
-		res.Scan(
-			&server.Id,
-			&server.Name,
-			&server.Icon,
-		)
+	serverMembersQueryString :=
+		`
+	delete from server_members
+	where server_id = $1
+	`
+
+	_, err = tx.Exec(serverMembersQueryString, serverId)
+	if err != nil {
+		tx.Rollback()
+		return server, err
 	}
+
+	messagesQueryString :=
+		`
+	delete from server_messages
+	where server_id = $1
+	`
+
+	_, err = tx.Exec(messagesQueryString, serverId)
+	if err != nil {
+		tx.Rollback()
+		return server, err
+	}
+
+	channelQueryString :=
+		`
+	delete from channels
+	where server_id = $1
+	`
+
+	_, err = tx.Exec(channelQueryString, serverId)
+	if err != nil {
+		tx.Rollback()
+		return server, err
+	}
+
+	serverQueryString :=
+		`
+	delete
+	from servers
+	where server_id = $1
+	returning
+	server_id,
+	server_name,
+	server_img
+	`
+
+	err = tx.QueryRow(serverQueryString, serverId).Scan(
+		&server.Id,
+		&server.Name,
+		&server.Icon,
+	)
+	if err != nil {
+		tx.Rollback()
+		return server, err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		tx.Rollback()
+
+		return server, err
+	}
+
+	// for res.Next() {
+	// 	res.Scan(
+	// 		&server.Id,
+	// 		&server.Name,
+	// 		&server.Icon,
+	// 	)
+	// }
 
 	return server, nil
 }
