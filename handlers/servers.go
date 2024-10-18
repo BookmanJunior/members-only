@@ -88,6 +88,17 @@ func HandlePostServer(app *config.Application) http.HandlerFunc {
 			return
 		}
 
+		for u := range app.Hub.Clients {
+			if currentUser.Id == u.User.Id {
+				server, err := app.Servers.GetById(newServerId)
+				if err != nil {
+					serverError(w, app, err)
+					return
+				}
+				u.AddServer(server)
+			}
+		}
+
 		serverInfo, err := app.Servers.GetById(newServerId)
 		if err != nil {
 			serverError(w, app, err)
