@@ -14,10 +14,10 @@ type Client struct {
 	Hub  *Hub
 	Conn *websocket.Conn
 	Send chan WSResponseMessage
-	DB   *models.MessageModel
+	DB   *models.ServerMessageModel
 }
 
-func CreateNewClient(user models.User, conn *websocket.Conn, hub *Hub, db *models.MessageModel) *Client {
+func CreateNewClient(user models.User, conn *websocket.Conn, hub *Hub, db *models.ServerMessageModel) *Client {
 	return &Client{
 		User: user,
 		Hub:  hub,
@@ -47,6 +47,8 @@ func (c *Client) Read() {
 			c.Conn.Close()
 			break
 		}
+
+		msg.UserId = c.User.Id
 
 		switch msg.Headers.Method {
 		case "POST":
@@ -85,6 +87,19 @@ func (c Client) Write() {
 				fmt.Println(err)
 				c.Conn.Close()
 			}
+		}
+	}
+}
+
+func (c *Client) AddServer(server models.Server) {
+	c.User.Servers = append(c.User.Servers, server)
+}
+
+func (c *Client) RemoveServer(serverID int) {
+	for i, server := range c.User.Servers {
+		if server.Id == serverID {
+			c.User.Servers = append(c.User.Servers[:i], c.User.Servers[i+1:]...)
+			return
 		}
 	}
 }
