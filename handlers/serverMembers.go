@@ -75,7 +75,7 @@ func HandleAddUserToServer(app *config.Application) http.HandlerFunc {
 		currentUser := r.Context().Value("current_user").(auth.UserClaim)
 
 		inv := ServerInviteModel{}
-		val, err := app.Redis.Get(context.Background(), r.PathValue("link")).Result()
+		val, err := app.Redis.Get(context.Background(), r.PathValue("inviteLink")).Result()
 		if err != nil {
 			if err == redis.Nil {
 				notFound(w)
