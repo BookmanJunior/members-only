@@ -70,7 +70,7 @@ func HandleServerInvitation(app *config.Application) http.HandlerFunc {
 	}
 }
 
-func CheckInvite(app *config.Application) http.HandlerFunc {
+func HandleAddUserToServer(app *config.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		currentUser := r.Context().Value("current_user").(auth.UserClaim)
 
@@ -123,5 +123,49 @@ func CheckInvite(app *config.Application) http.HandlerFunc {
 		}
 
 		WriteJSON(w, http.StatusOK, s)
+	}
+}
+
+func HandleRemoveUserFromServer(app *config.Application) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var input struct {
+			UserId int `json:"user_id"`
+		}
+		currentUser := r.Context().Value("current_user").(auth.UserClaim)
+		serverId, err := parseIdParam(r.PathValue("id"))
+		if err != nil {
+			badRequest(w, err.Error())
+			return
+		}
+
+		serverOwnerId, err := app.Servers.GetOwner(serverId, currentUser.Id)
+		if err != nil {
+			if err == sql.ErrNoRows || serverOwnerId != currentUser.Id || input.UserId == serverOwnerId {
+				Unauthorized(w)
+				return
+			}
+		}
+
+		err = json.NewDecoder(r.Body).Decode(&input)
+		if err != nil || input.UserId < 1 {
+			fmt.Println(err)
+			badRequest(w, "IDK")
+			return
+		}
+
+		err = app.ServerMembers.DeleteByUserId(serverId, input.UserId)
+		if err != nil {
+			serverError(w, app, err)
+			return
+		}
+
+		for client, _ := range app.Hub.Clients {
+			if client.User.Id == input.UserId {
+				client.RemoveServer(serverId)
+				break
+			}
+		}
+
+		WriteJSON(w, http.StatusOK, "Removed user from server")
 	}
 }
