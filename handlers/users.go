@@ -65,7 +65,6 @@ func HandleUserPost(app *config.Application) http.HandlerFunc {
 			}
 
 			avatarExists := app.Avatar.Exists(form.AvatarId)
-			fmt.Println(avatarExists)
 			if !avatarExists {
 				form.AddFieldError("avatar", "Please pick a valid avatar")
 			}
