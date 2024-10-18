@@ -55,7 +55,7 @@ func (s ServerMembersModel) Insert(serverId, userId int) (int, error) {
 	var sId int
 	queryString :=
 		`
-	insert into server_members(server_id, user_id)
+	insert into server_members (server_id, user_id)
 	values($1, $2)
 	returning server_id
 	`
@@ -65,4 +65,18 @@ func (s ServerMembersModel) Insert(serverId, userId int) (int, error) {
 	}
 
 	return sId, nil
+}
+
+func (s ServerMembersModel) DeleteByUserId(serverId, userId int) error {
+	queryString :=
+		`
+	delete from server_members
+	where server_id = $1 and user_id = $2
+	`
+
+	_, err := s.DB.Exec(queryString, serverId, userId)
+	if err != nil {
+		return err
+	}
+	return nil
 }
