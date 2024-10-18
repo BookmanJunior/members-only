@@ -2,6 +2,7 @@ package models
 
 import (
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/bookmanjunior/members-only/internal/filter"
@@ -100,10 +101,15 @@ func (sm *ServerMessageModel) Insert(m ServerMessage) (ServerMessage, error) {
 	message_id,
 	server_id,
 	channel_id,
-	user_id,
+	u.user_id,
 	message_body,
-	sent_date
-	from new_message
+	sent_date,
+	u.username,
+	a.avatar_color,
+	a.avatar_url
+	from new_message nm
+	join users u on u.user_id = nm.user_id
+	join avatars a on a.avatar_id = u.avatar
 	`
 
 	err := sm.DB.QueryRow(queryString, m.ServerId, m.ChannelId, m.User.Id, m.Message).
@@ -114,11 +120,15 @@ func (sm *ServerMessageModel) Insert(m ServerMessage) (ServerMessage, error) {
 			&newMessage.User.Id,
 			&newMessage.Message,
 			&newMessage.SentDate,
+			&newMessage.User.Username,
+			&newMessage.User.Avatar.Color,
+			&newMessage.User.Avatar.Url,
 		)
 	if err != nil {
 		return newMessage, err
 	}
 
+	fmt.Println(newMessage)
 	return newMessage, nil
 }
 
